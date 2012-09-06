@@ -67,7 +67,7 @@ import level.LevelInstanceBase;
 
 class LevelInstance_0 extends LevelInstanceBase {
 	public function LevelInstance_0() {
-		super.sections = ['Level0'];//,Level1]; 	
+		super.sections = ['Debug'];//['Level0'];//,Level1]; 	
 	}	
 }
 

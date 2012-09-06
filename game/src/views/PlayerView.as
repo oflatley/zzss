@@ -21,8 +21,7 @@ package views
 
 		public function PlayerView()
 		{
-			mc = ObjectPool.instance.playerMC; // for swc: new Player();
-			
+			mc = ObjectPool.instance.playerMC; 
 			
 			for( var i : int = 0; i < _debugTP.length; ++i ) {
 				_debugTP[i] = ObjectPool.instance.getDebugBoundingBox();

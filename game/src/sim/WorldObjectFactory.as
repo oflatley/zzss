@@ -86,20 +86,21 @@ package sim
 				throw new Error( 'Could not find behavior spec for ' + type + ' | ' + c.behavior );
 			}
 			
-			return _buildBehavior( c, b );
+			return _buildBehavior( type, c, b );
 		}
 		
-		private function _buildBehavior( classSpec : Object, behaviorSpec : Object ) : WorldObjectBehavior {
+		private function _buildBehavior( type:String, classSpec : Object, behaviorSpec : Object ) : WorldObjectBehavior {
 			
-			var IUp : IUpdateHandler = __build( classSpec, _onUpdateHandlers, behaviorSpec.update ) as IUpdateHandler;
-			var IOnC : IOnCollisionHandler = __build( classSpec, _onCollisionHandlers, behaviorSpec.onCollision ) as IOnCollisionHandler;
-			var ICD : ICollisionDetectionHandler =  __build( classSpec, _collisionDetectionHandlers, behaviorSpec.collisionDetection ) as ICollisionDetectionHandler;
+			
+			var IUp : IUpdateHandler = __build( type, classSpec, _onUpdateHandlers, behaviorSpec.update ) as IUpdateHandler;
+			var IOnC : IOnCollisionHandler = __build( type, classSpec, _onCollisionHandlers, behaviorSpec.onCollision ) as IOnCollisionHandler;
+			var ICD : ICollisionDetectionHandler =  __build( type, classSpec, _collisionDetectionHandlers, behaviorSpec.collisionDetection ) as ICollisionDetectionHandler;
 			var IQ : IQuerryHandler = new QuerryHandler( behaviorSpec.properties ) ;
 			
 			return new WorldObjectBehavior( IUp, IOnC, ICD , IQ );
 		}
 
-		private function __build( classSpec : Object , table : Array,  ifaceCatagory : Object )  : Object{
+		private function __build( type: String, classSpec : Object , table : Array,  ifaceCatagory : Object )  : Object{
 			
 			// ifaceCatagory is the key to the correct set of handlers  e.g. onCollision[], update[], collisionDetection[], etc
 			// _type is a particular handler within the specified set.. we use 'default' if behavior did not specify override behavior for the catagory
@@ -110,7 +111,7 @@ package sim
 			if( k ) {
 				var handler : * = new k();					// create instance of handler for onCollision, update, collisionDetection etc
 				var args : Object = classSpec.args ? classSpec.args[_type] : null; 		// args reqireed to init  e.g. how much to scale, etc
-				handler.init(classSpec.name,args);
+				handler.init(args,type,classSpec.name);
 				return handler;			
 			}			
 			return null;						
@@ -162,7 +163,7 @@ import util.Vector2;
 
 
 interface IHandler {
-	function init( type : String, args : Object ) : void ;
+	function init( args: Object, type : String, classSpecName : String ) : void ;
 }
 
 class QuerryHandler implements IQuerryHandler {
@@ -183,7 +184,7 @@ class QuerryHandler implements IQuerryHandler {
 
 
 class UpdateDefault implements IHandler, IUpdateHandler {
-	public function init( type:String, args:Object ) : void {}
+	public function init( args: Object, type : String, classSpecName : String ) : void {}
 	public function exec(I:IWorldObjectBehaviorOwner) : void {}
 }
 
@@ -192,8 +193,8 @@ class UpdateAI implements IHandler, IUpdateHandler  {
 	private var _pattern : String;
 	private var _speed : Number;
 	private var _disp : Point = new Point();
-	
-	public function init(type:String, args:Object):void
+
+	public function init( args: Object, type : String, classSpecName : String ) : void 
 	{
 		_pattern = args.pattern;
 		_speed = args.speed;		
@@ -216,39 +217,6 @@ class UpdateAI implements IHandler, IUpdateHandler  {
 	
 }
 
-/*
-override public function update():void
-{
-pImpulse.x = computeImpulseX();
-offset( pImpulse );
-}
-
-override public function setProps(props:Object):void
-{
-range = props.range;
-homeX = props.homeX;
-}
-
-private function computeImpulseX() : Number {
-
-if( ! isOnscreen() ) {
-return 0;
-}
-
-var newX : Number =_bounds.left + dir * VELOCITY_X;
-
-if( newX <= homeX - range ) {
-dir = 1;
-newX = homeX - range;
-} 
-else if ( newX >= homeX ) {
-dir = -1;
-newX = homeX;
-}
-return newX - _bounds.left;			
-
-}
-*/
 
 class UpdateAnimatedPlatform implements IHandler, IUpdateHandler {
 	
@@ -256,10 +224,7 @@ class UpdateAnimatedPlatform implements IHandler, IUpdateHandler {
 	private var _lastY : Number = 0;	
 	private var _disp : Point = new Point();
 	
-	public function init(type:String, args:Object):void
-	{
-		// TODO Auto Generated method stub	
-	}
+	public function init( args: Object, type : String, classSpecName : String ) : void {}
 	
 	public function exec(I:IWorldObjectBehaviorOwner):void
 	{
@@ -276,11 +241,10 @@ class CollisionDetectionDefault implements IHandler, ICollisionDetectionHandler 
 	private var _ICollisionData : ICollisionData = null;	
 	private var _collisionResult : Vector2 = new Vector2();
 	
-	public function init( type : String, args : Object ) : void {
-	
+	public function init( args: Object, type : String, classSpecName : String ) : void {
 		_ICollisionData = CollisionDataProvider.instance.getCollisionData(type);
-
 	}
+
 	public function exec( iCol: ICollider, _bounds : Rectangle ) : Vector2 {
 				
 		var v : Vector2  = test_rXr( iCol.bounds, _bounds );	
@@ -323,9 +287,7 @@ class CollisionDetectionDefault implements IHandler, ICollisionDetectionHandler 
 
 class CollisionDetectionNever implements IHandler, ICollisionDetectionHandler {
 	
-	public function init( type: String, args: Object ) : void {
-		
-	}
+	public function init( args: Object, type : String, classSpecName : String ) : void {}
 	
 	public function exec( I : ICollider, _bounds : Rectangle ) : Vector2 {
 		return null;
@@ -334,7 +296,7 @@ class CollisionDetectionNever implements IHandler, ICollisionDetectionHandler {
 
 
 class OnCollisionDefault implements IHandler, IOnCollisionHandler {
-	public function init( type: String, args : Object ) : void {}
+	public function init( args: Object, type : String, classSpecName : String ) : void {}
 	public function exec(  p : PlayerSim ) : void {}
 }
 
@@ -342,7 +304,7 @@ class OnCollisionModifyVelocity implements IHandler, IOnCollisionHandler {
 	
 	private var _v : Point;
 	
-	public function init( type: String, args : Object ) : void {
+	public function init( args: Object, type : String, classSpecName : String ) : void {
 		_v = new Point( args.x, args.y );
 	}
 	
@@ -357,7 +319,7 @@ class OnCollisionModifyVelocityTimed implements IHandler, IOnCollisionHandler {
 	private var _duration_ms : int;
 	private var _scale : Number;
 	
-	public function init( type: String, args : Object ) : void {
+	public function init( args: Object, type : String, classSpecName : String ) : void {
 		
 		_duration_ms = args.ms; 
 		_scale = args.s;
@@ -373,7 +335,7 @@ class OnCollisionTreasure implements IHandler, IOnCollisionHandler {
 	
 	private var _value : int;
 	
-	public function init( type: String,  args : Object ) : void  {
+	public function init( args: Object, type : String, classSpecName : String ) : void {
 		_value = args.value;
 	}
 	
@@ -387,7 +349,7 @@ class OnCollisionModifySize implements IHandler, IOnCollisionHandler {
 	private var _scale : Number;
 	private var _duration_ms : Number;
 	
-	public function init( type:String,  args : Object ) : void { 
+	public function init( args: Object, type : String, classSpecName : String ) : void {
 		_scale = args.s;
 		_duration_ms = args.ms;
 	}

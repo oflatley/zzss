@@ -20,8 +20,8 @@ package level {
 		// TODO protected ??? wtf
 		public function set sections(value:Array) : void { 
 			_sections = value; 
-			_sections.push( "Start" );
-			_sections.push( "Finish" );			
+//			_sections.push( "Start" );
+//			_sections.push( "Finish" );			
 		}  
 		
 		private function generateShuffledSections() : Array {
@@ -35,7 +35,7 @@ package level {
 				}
 			}
 			
-			shuffledSections.push( "Start" );
+//			shuffledSections.push( "Start" );
 			
 			while( order.length ) {
 				var n : Number = Math.random();
@@ -44,7 +44,7 @@ package level {
 				shuffledSections.push( _sections[dx] );
 			}
 			
-			shuffledSections.push( "Finish" );			
+//			shuffledSections.push( "Finish" );			
 			return shuffledSections;
 		}
 		

@@ -358,6 +358,7 @@ package sim
 			
 			var event : PlayerEvent = new PlayerEvent( PlayerEvent.PLAYER_DEBUG_INVALIDATE_COLLISION_NODES );
 			event.collisionNodes_debug = collisionTestPoints;
+			dispatchEvent( event );
 		}
 		
 		public function get velocity():Vector2

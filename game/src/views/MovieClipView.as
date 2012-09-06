@@ -19,14 +19,20 @@ package views
 		
 		private var _mc : MovieClip;
 		private var a : Array = new Array();
-		private static const DEBUG_COLLISION_PRECISION: int = 3; // 1 is most accurate
+		private static const DEBUG_COLLISION_PRECISION: int = 1; // 1 is most accurate
+		private var _mcBounds : MovieClip;
 		
 		public function MovieClipView ( displayContainer: ScreenContainer, iWorldObj : IWorldObject, mc : MovieClip ) {
 			_mc = mc;
 			displayContainer.container.addChild( mc );
 			iWorldObj.eventDispatcher.addEventListener( WorldObjectEvent.WORLDOBJECT_MOVE, onWorldObjMove );
 
-/* DEBUG COLLISION DATA				
+/* DEBUG COLLISION DATA	
+			_mcBounds = ObjectPool.instance.getDebugBoundingBox();
+			_mcBounds.width = _mc.width;
+			_mcBounds.height = _mc.height;
+			displayContainer.container.addChild( _mcBounds );
+			
 			var xx : int = Math.floor(_mc.width);
 			var yy : int = Math.floor(_mc.height);			
 			
@@ -52,7 +58,11 @@ package views
 			_mc.x = r.x;
 			_mc.y = r.y;
 
-/* DEBUG COLLISION DATA			
+/* DEBUG COLLISION DATA		
+			
+			_mcBounds.x = r.x;
+			_mcBounds.y = r.y;
+			
 			var icd : ICollisionData = CollisionDataProvider.instance.getCollisionData( "Platform_Arc_0" );
 			var xx : int = Math.floor(_mc.width);
 			var yy : int = Math.floor(_mc.height);

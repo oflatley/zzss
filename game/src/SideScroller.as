@@ -54,6 +54,9 @@ package
 
 		
 		private static const objPoolAllocs : Array = [
+			{type:"Platform_Arc_0" , 	count:1 },			
+
+/*			
 			{type:"StartSign",			count:1 },
 			{type:"FinishSign",			count:1 },
 			{type:"Platform_Arc_0" , 	count:5 },			
@@ -73,6 +76,7 @@ package
 			{type:"Trampoline", count:3 },
 			{type:"Launcher",count:5 },
 			{type:"Catapult",count:3 },
+*/			
 			];
 
 		private static const  worldObjectSpec : Object = {
@@ -140,7 +144,7 @@ package
 			playerView.AddToScene( ScreenContainer.instance.container );
 			playerSim = new PlayerSim(new Controller(stage), velocityX, gravity, playerView.getBounds(), collisionManager );
 			playerView.initEventListeners( playerSim );
-  			playerSim.SetPosition( new Point( 0,305 ) );
+  			playerSim.SetPosition( new Point( 0,375 ) );
 	
 			ObjectPool.instance.initialize( objPoolAllocs, ScreenContainer.instance );
 			currentLevel = null;
