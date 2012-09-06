@@ -1,18 +1,12 @@
-package level {
-	
-	import events.LevelEvent;
-	
+package level {	
+	import events.LevelEvent;	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.net.URLLoader;
-	import flash.net.URLRequest;
-	
-	import interfaces.ILevelData;
-	
-	import level.LevelFactory;
-	
-	import level.Level;
-	
+	import flash.net.URLRequest;	
+	import interfaces.ILevelData;	
+	import level.LevelFactory;	
+	import level.Level;	
 	import util.ObjectPool;
 	
 	public class LevelInstanceBase extends EventDispatcher {
@@ -20,13 +14,14 @@ package level {
 		private var _sections : Array;
 		private static const urlBaseFolder : String = 'data/level/';
 		private var _loadedSectionsXml : Array = new Array();
-		private var _cb : Function;
 		
 		public function LevelInstanceBase()  {}
 		
 		// TODO protected ??? wtf
 		public function set sections(value:Array) : void { 
 			_sections = value; 
+			_sections.push( "Start" );
+			_sections.push( "Finish" );			
 		}  
 		
 		private function generateShuffledSections() : Array {
@@ -34,8 +29,13 @@ package level {
 			var order : Array = new Array();
 			var shuffledSections : Array = new Array();
 			for( var i : int = 0; i < _sections.length; ++i ) {
-				order.push(i);			
+				var s : String = _sections[i];
+				if( s != "Start" && s != "Finish" ) {			
+					order.push(i);		
+				}
 			}
+			
+			shuffledSections.push( "Start" );
 			
 			while( order.length ) {
 				var n : Number = Math.random();
@@ -43,17 +43,16 @@ package level {
 				var dx : int = order.splice( r, 1 )[0];
 				shuffledSections.push( _sections[dx] );
 			}
+			
+			shuffledSections.push( "Finish" );			
 			return shuffledSections;
 		}
 		
-		public function generate( ) : void { //onCompleteCallback : Function ) :  void {
-		
-//			_cb = onCompleteCallback;
-			
-			var urlLoader : URLLoader = new URLLoader() ;
-			urlLoader.addEventListener( Event.COMPLETE, onLoadComplete );		
+		public function generate( ) : void { 			
 
 			for each( var s : String in _sections ) {
+				var urlLoader : URLLoader = new URLLoader() ;
+				urlLoader.addEventListener( Event.COMPLETE, onLoadComplete );		
 				var url : String = urlBaseFolder + s + '.xml';
 				var req : URLRequest = new URLRequest( url );
 				urlLoader.load( req );
@@ -71,6 +70,7 @@ package level {
 		
 		protected function onLoadComplete(event:Event):void
 		{
+			//event.target.removeEventListener( Event.COMPLETE, arguments.callee );
 			_loadedSectionsXml.push( event.target.data );
 			
 			if( _loadedSectionsXml.length == _sections.length ) {

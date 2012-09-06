@@ -2,6 +2,7 @@ package
 {
 	
 	import collision.CollisionDataProvider;
+	import collision.CollisionManager;
 	
 	import events.CollisionDataProviderEvent;
 	import events.ControllerEvent;
@@ -24,13 +25,14 @@ package
 	
 	import interfaces.ICollisionData;
 	
-	import level.LevelFactory;
+	import io.Controller;
 	
 	import level.Level;
-	import sim.PlayerSim;
+	import level.LevelFactory;
 	
-	import collision.CollisionManager;
-	import io.Controller;
+	import sim.PlayerSim;
+	import sim.WorldObjectFactory;
+	
 	import util.ObjectPool;
 	import util.ScreenContainer;
 	
@@ -47,12 +49,13 @@ package
 		private var worldStaticObjects : Array = new Array();
 		private var playerSim:PlayerSim;
 		private var currentLevel:Level;
-		private var screenContainer : ScreenContainer;
 		private var collisionDataProvider : CollisionDataProvider;		
 		private var _waitingToCompleteCount : int;
 
 		
 		private static const objPoolAllocs : Array = [
+			{type:"StartSign",			count:1 },
+			{type:"FinishSign",			count:1 },
 			{type:"Platform_Arc_0" , 	count:5 },			
 			{type:"PlatformShort_0" , 	count:12 },			
 			{type:"PlatformMedium_0", 	count:10 },
@@ -72,14 +75,45 @@ package
 			{type:"Catapult",count:3 },
 			];
 
+		private static const  worldObjectSpec : Object = {
+			
+			behaviors:[
+				{name:"ModifyVelocity",					onCollision:{ type:"modVel" } },
+				{name:"ModifySpeedTimed",				onCollision:{ type:"modVelTimed" }, properties:["Consumable"]  },
+				{name:"ModifySize",						onCollision:{ type:"modSize" }, properties:['Consumable']  },
+				{name:"Treasure",						onCollision:{ type:"tc" }, properties:['Consumable'] },
+				{name:"AnimatedPlatform",				update:{type:"animPlat"} },
+				{name:"Enemy", 							update:{type:"ai"}, properties:['Monster'] },
+				{name:"Scenary",						collisionDetection:{type:"never"} },
+			],
+			
+			classes: [
+				{name:"Launcher", 					behavior:"ModifyVelocity", args:{ modVel:{x:0,y:-40} } },
+				{name:"Trampoline", 				behavior:"ModifyVelocity", args:{ modVel:{x:0,y:-20} } },
+				{name:"Catapult", 					behavior:"ModifyVelocity", args:{ modVel:{x:36,y:-34} } },
+				{name:"SpringBoard", 				behavior:"ModifyVelocity", args:{ modVel:{x:10,y:-40} } },
+				{name:"SpeedBoostCoin",				behavior:"ModifySpeedTimed", args:{ modVelTimed:{x:2,y:1,ms:3000 } } },
+				{name:"Token_MakePlayerBigger",		behavior:"ModifySize", args:{ modSize:{s:1.5, ms:4000 } } },
+				{name:"Token_MakePlayerSmaller",	behavior:"ModifySize", args:{ modSize:{s:0.5, ms:4000 } } },
+				{name:"Brain",						behavior:"Treasure", args:{ tc:{value:1} } },	
+				{name:"PlatformShort_elev", 		behavior:"AnimatedPlatform", args:{ animPlat:{pattern:"cycle", translation:"sin",speed:150} } },
+				{name:"Enemy_0",					behavior:"Enemy", args:{ ai:{pattern:"left", translation:"linear", speed:1} } },
+				{name:"StartSign",					behavior:"Scenary" },
+				{name:"FinishSign",					behavior:"Scenary" },
+				
+			]
+		};		
+		
 		
 		public function SideScroller()
 		{
 			super();
 			
+			
+			WorldObjectFactory.instance.init( worldObjectSpec );		
+			
 			collisionManager = new CollisionManager();
-			screenContainer = ScreenContainer.Instance();
-			addChild( screenContainer.container );						
+			addChild( ScreenContainer.instance.container );						
 
 			_waitingToCompleteCount = 3;
 			ObjectPool.instance.buildMovieClipClasses( 'data/assets/assets.swf'); 
@@ -104,34 +138,33 @@ package
 			stage.frameRate = 60;
 			
 			var playerView : PlayerView = new PlayerView(  );
-			playerView.AddToScene( screenContainer.container );
+			playerView.AddToScene( ScreenContainer.instance.container );
 			playerSim = new PlayerSim(new Controller(stage), velocityX, gravity, playerView.getBounds(), collisionManager );
 			playerView.initEventListeners( playerSim );
-			playerSim.SetPosition( new Point( 10,405 ) );
+  			playerSim.SetPosition( new Point( 0,305 ) );
 	
-			ObjectPool.instance.initialize( objPoolAllocs, screenContainer );
+			ObjectPool.instance.initialize( objPoolAllocs, ScreenContainer.instance );
 			currentLevel = null;
 			LevelFactory.instance.initialize( collisionManager, playerSim );
 			LevelFactory.instance.addEventListener( LevelEvent.GENERATED, onLevelGenerated ); 
 			LevelFactory.instance.generateLevel( "Level0") ; 
 
 			onResize( null );
-			addEventListener(Event.RESIZE, onResize );
- 			addEventListener(Event.ENTER_FRAME, onEnterFrame );
 		}
 		
 		protected function onLevelGenerated(event:LevelEvent):void
 		{
 			LevelFactory.instance.removeEventListener( LevelEvent.GENERATED, onLevelGenerated );
 			currentLevel = event.payload;
+			addEventListener(Event.RESIZE, onResize );
+ 			addEventListener(Event.ENTER_FRAME, onEnterFrame );
 		}
 		
 		private function onEnterFrame( e:Event ) : void {
-		
 	 		playerSim.Update();
 			currentLevel.update(playerSim.worldPosition);
 			collisionManager.update(playerSim,currentLevel.activeObjects);		// dispatches CollisionEvents
-			screenContainer.update( playerSim.worldPosition );		
+			ScreenContainer.instance.update( playerSim.worldPosition );		
 		}
 		
 		private function onResize( e:Event ) : void {

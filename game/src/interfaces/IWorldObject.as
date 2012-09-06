@@ -14,11 +14,12 @@ package interfaces {
 		function set position( p:Point ) : void ;
 		
 		function offset( p : Point ) : void ;		
-		function setProps( props:Object ) : void ;
-		function getYat( x:Number ) : Number;
+	//	function setProps( props:Object ) : void ;
+		//function getYat( x:Number ) : Number;
+		function querry( s : String ) : Boolean;
+		
 		function testCollision( iface : ICollider ) : CollisionResult;
 		function update() : void;
 		function onCollision( player : PlayerSim ) : void;		
-		function querry( s : String ) : Boolean; 
 	}
 }

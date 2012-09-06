@@ -1,7 +1,6 @@
 package collision
 {
-	import flash.geom.Point;
-	
+	import flash.geom.Point;	
 	import interfaces.IWorldObject;
 	import util.Vector2;
 

@@ -132,7 +132,7 @@ package util
 		//swf loading support
 		private function onSwfLoadComplete(event:Event):void
 		{
-			var aNames : Array = ["Player","Platform_Arc_0","Catapult","Trampoline","Launcher","Token_MakePlayerBigger","Token_MakePlayerSmaller", "SpringBoard","Brain","SpeedBoostCoin","Enemy_0","Column","PlatformShort_0","PlatformMedium_0","PlatformLong_0","PlatformMedium_15","PlatformMedium_345"];
+			var aNames : Array = ["Player","Platform_Arc_0","Catapult","Trampoline","Launcher","Token_MakePlayerBigger","Token_MakePlayerSmaller", "SpringBoard","Brain","SpeedBoostCoin","Enemy_0","Column","PlatformShort_0","PlatformMedium_0","PlatformLong_0","StartSign","FinishSign","PlatformMedium_15","PlatformMedium_345"];
 					
 			event.target.removeEventListener( Event.COMPLETE, arguments.callee );
 			var ad:ApplicationDomain = event.target.applicationDomain;

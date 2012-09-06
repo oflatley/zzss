@@ -12,7 +12,7 @@ package util
 
 		private static const _xMargin : Number = 200;
 		private var _container : Sprite;
-		private static var sc :ScreenContainer = null;
+		private static var _theThe :ScreenContainer = null;
 		private var _sliceCount : int;
 		private var _sliceWidth : int; 		// TODO resize
 		private var _ndxCurrentSlice : int;
@@ -22,11 +22,11 @@ package util
 		
 		
 		
-		public static function Instance() : ScreenContainer {
-			if( null == sc ) {
-				sc = new ScreenContainer(new SingletonEnforcer());
+		public static function get instance() : ScreenContainer {
+			if( null == _theThe ) {
+				_theThe = new ScreenContainer(new SingletonEnforcer());
 			}
-			return sc;
+			return _theThe;
 		}
 		
 		public function SetSliceCount( n : int ) : void {

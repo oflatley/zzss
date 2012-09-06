@@ -43,10 +43,10 @@ package level
 			_scrollSignaled = false;
 			
 			_collisionMgr.addEventListener( CollisionEvent.PLAYERxWORLD, onPlayerxWorldCollision );
-			ScreenContainer.Instance().addEventListener( ScreenContainerEvent.SLICE_SCROLL, onSliceScroll );
+			ScreenContainer.instance.addEventListener( ScreenContainerEvent.SLICE_SCROLL, onSliceScroll );
 			playerSim.addEventListener( RemoveFromWorldEvent.REMOVE_FROM_WORLD, onRemoveFromWorld );
 						
-			ScreenContainer.Instance().SetSliceCount(bucketSlices);	
+			ScreenContainer.instance.SetSliceCount(bucketSlices);	
 			collisionsToProcess = new Array();	
 			var typeWidths : Array = new Array();
 			
@@ -123,9 +123,9 @@ package level
 				var wo : IWorldObject = ObjectPool.instance.GetObj( info.type );
 				wo.position = new Point( info.x0, info.y );
 				
-				if( info.props ) {
-					wo.setProps( info.props );
-				}
+			//	if( info.props ) {
+			//		wo.setProps( info.props );
+			//	}
 				
 				// add to the active object list --> e.g. now there will be updates and collision detection for wo
 				activeObjects.push( wo );
@@ -173,7 +173,7 @@ package level
 			_objectsToRemove.length = 0;
 			
 			for each( var cr : CollisionResult in collisionsToProcess ) {
-				if( cr.collidedObj.querry( WorldObjectFactory.Q_CONSUMABLE ) ) { // isConsumable) {
+				if( cr.collidedObj.querry( WorldObjectFactory.Q_CONSUMABLE ) ) {
 					removeObject( cr.collidedObj );
 					var ndx : int = cr.collidedObj.bounds.right / bucketWidth;
 					ar = buckets_endX[ndx];

@@ -4,13 +4,12 @@ package util
 
 	public class Vector2
 	{
-		private var _p:Point;
+		private var _x : Number;
+		private var _y : Number;
 		
 		public function Vector2( x:Number = 0, y : Number = 0)
 		{
-			trace( x + ' -- ' + y );
-			_p = new Point( x,y );
-			trace( this.x + ' -- ' + this.y );
+			setxy(x,y);
 		}
 		
 		public static function subtract( vA : Vector2, vB : Vector2 ) : Vector2{
@@ -18,59 +17,59 @@ package util
 		}
 		
 		public function get isNotZero() : Boolean {
-			return _p.x || _p.y;
+			return _x || _y;
 		}
 		
 		public function setxy( x : Number, y : Number ) : void {
-			_p.x = x;
-			_p.y = y;
+			_x = x;
+			_y = y;
 		}
 		
 		public function dot( v : Vector2 ) : Number {
-			return _p.x * v.x + _p.y * v.y;
+			return _x * v.x + _y * v.y;
 		}
 		
 		public function get x():Number 
 		{			
-			return _p.x;
+			return _x;
 		}
 		
 		public function set x(value:Number):void 
 		{
-			_p.x = value;	
+			_x = value;	
 		}
 		
 		public function get y():Number { 
-			return _p.y;				
+			return _y;				
 		}
 
 		public function set y(value:Number):void 
 		{
-			_p.y = value;	
+			_y = value;	
 		}
 				
 		public function magnitudeSquared() : Number {
-			return _p.x * _p.x + _p.y * _p.y;
+			return _x * _x + _y * _y;
 		}
 		
 		public function magnitude() : Number {
-			return Math.sqrt( _p.x * _p.x + _p.y * _p.y );
+			return Math.sqrt( _x * _x + _y * _y );
 		}
 		
 		public function negate() : void {
-			_p.x = -_p.x;
-			_p.y = -_p.y;
+			_x = -_x;
+			_y = -_y;
 		}
 		
 		public function scale( n : Number ) : void {
-			_p.x *= n;
-			_p.y *= n;
+			_x *= n;
+			_y *= n;
 		}
 		
 		public function normalize() : void {
 			var magn : Number = magnitude();
-			_p.x /= magn;
-			_p.y /= magn;
+			_x /= magn;
+			_y /= magn;
 		}
 	}
 }

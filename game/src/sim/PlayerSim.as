@@ -70,10 +70,6 @@ package sim
 			initCollisionTestPoints( _collisionTestPointsWalking );
 			initCollisionTestPoints( _collisionTestPointsJumping );
 			initCollisionTestPoints( _collisionTestPointsJumpingUp );			
-		
-	
-			//if( !_velocity ) 
-			
 		}
 		
 		private function initLocalCollisionTestPoints( scale : Number ) : void {
@@ -218,7 +214,7 @@ package sim
 			
 			
 			
-			if( wo.querry( WorldObjectFactory.Q_MONSTER ) ) {  //.isMonster ) {
+			if( wo.querry( WorldObjectFactory.Q_MONSTER ) ) {  
 				
 				if( v.y < 0 && -v.y > Math.abs(v.x) ) {
 					// player hit monster from above --> Kill the monster
@@ -233,14 +229,14 @@ package sim
 				}
 				v.setxy(0,0);
 			}
-			else if( wo.querry( WorldObjectFactory.Q_CONSUMABLE ) ) { //isConsumable ) {
+			else if( wo.querry( WorldObjectFactory.Q_CONSUMABLE ) ) {
 				v.setxy(0,0);	
 			}				
 			else
 			{
 				var bCollisionFromBelow : Boolean = v.y > 0;
 				
-				if( bCollisionFromBelow && !wo.querry( WorldObjectFactory.Q_COLLIDEABLE_FROM_BELOW )){ //  !wo.isCollideableFromBelow ) {
+				if( bCollisionFromBelow && !wo.querry( WorldObjectFactory.Q_COLLIDEABLE_FROM_BELOW )){
 					v.setxy(0,0)
 				}
 				else { 					

@@ -29,3 +29,11 @@ chariot of fire
 
 new game: platoblio : diablo style pltformer
 
+
+querry( monster, isColFromBelow, iscollideale, isconsumagle)
+launcher (x,y)  -- on collision
+coin (value)  -- on collision
+scale (size,duration)  -- on collision
+elevator
+patrol to and fro
+

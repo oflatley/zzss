@@ -153,8 +153,6 @@ package
 			}
 				
 			_xml = JSON.stringify( json );
-			
-			
 		}
 		
 		private function orderWorldObjects( a : WorldObject, b : WorldObject) : int {
