@@ -96,11 +96,10 @@ package
 				{name:"Token_MakePlayerBigger",		behavior:"ModifySize", args:{ modSize:{s:1.5, ms:4000 } } },
 				{name:"Token_MakePlayerSmaller",	behavior:"ModifySize", args:{ modSize:{s:0.5, ms:4000 } } },
 				{name:"Brain",						behavior:"Treasure", args:{ tc:{value:1} } },	
-				{name:"PlatformShort_elev", 		behavior:"AnimatedPlatform", args:{ animPlat:{pattern:"cycle", translation:"sin",speed:150} } },
-				{name:"Enemy_0",					behavior:"Enemy", args:{ ai:{pattern:"left", translation:"linear", speed:1} } },
+				{name:"PlatformShort_elev", 		behavior:"AnimatedPlatform", args:{ animPlat:{pattern:"cycle", transition:"sin",speed:150} } },
+				{name:"Enemy_0",					behavior:"Enemy", args:{ ai:{pattern:"left", speed:1} } },
 				{name:"StartSign",					behavior:"Scenary" },
-				{name:"FinishSign",					behavior:"Scenary" },
-				
+				{name:"FinishSign",					behavior:"Scenary" },				
 			]
 		};		
 		

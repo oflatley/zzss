@@ -19,6 +19,7 @@ package sim {
 	import interfaces.IQuerryHandler;
 	import interfaces.IUpdateHandler;
 	import interfaces.IWorldObject;
+	import interfaces.IWorldObjectBehaviorOwner;
 	
 	import sim.PlayerSim;
 	import sim.WorldObjectBehavior;
@@ -26,7 +27,7 @@ package sim {
 	import util.ScreenContainer;
 	import util.Vector2;
 	
-	public class WorldObjectSim extends EventDispatcher implements IWorldObject {
+	public class WorldObjectSim extends EventDispatcher implements IWorldObject, IWorldObjectBehaviorOwner {
 		
 		private var _bounds : Rectangle;
 		private var _id : String;
@@ -69,7 +70,7 @@ package sim {
 
 		public function update():void
 		{
-			_IUpdate.exec();
+			_IUpdate.exec(this);
 		}
 		
 		public function testCollision( iCol: ICollider ) : collision.CollisionResult {			

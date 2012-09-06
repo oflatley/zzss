@@ -1,5 +1,5 @@
 package interfaces {
 	public interface IUpdateHandler {
-		function exec() : void;
+		function exec(I:IWorldObjectBehaviorOwner) : void;
 	}
 }

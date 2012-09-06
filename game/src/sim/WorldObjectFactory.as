@@ -154,6 +154,7 @@ import interfaces.ICollisionDetectionHandler;
 import interfaces.IOnCollisionHandler;
 import interfaces.IQuerryHandler;
 import interfaces.IUpdateHandler;
+import interfaces.IWorldObjectBehaviorOwner;
 
 import sim.PlayerSim;
 
@@ -183,24 +184,34 @@ class QuerryHandler implements IQuerryHandler {
 
 class UpdateDefault implements IHandler, IUpdateHandler {
 	public function init( type:String, args:Object ) : void {}
-	public function exec() : void {}
+	public function exec(I:IWorldObjectBehaviorOwner) : void {}
 }
 
 class UpdateAI implements IHandler, IUpdateHandler  {
 	
 	private var _pattern : String;
+	private var _speed : Number;
+	private var _disp : Point = new Point();
 	
 	public function init(type:String, args:Object):void
 	{
 		_pattern = args.pattern;
-		// TODO Auto Generated method stub
-		
+		_speed = args.speed;		
 	}
 	
-	public function exec():void
+	public function exec(I:IWorldObjectBehaviorOwner):void
 	{
-		// TODO Auto Generated method stub
-		
+		_disp.x = onScreen ? displacementX() : 0;
+		I.offset( _disp );
+	}
+	
+	// always walks left. TODO -- add more ai
+	private function displacementX() : Number {
+		return -_speed;
+	}
+	
+	private function get onScreen() : Boolean {
+		return true;
 	}
 	
 }
@@ -240,14 +251,23 @@ return newX - _bounds.left;
 */
 
 class UpdateAnimatedPlatform implements IHandler, IUpdateHandler {
+	
+	private var _theta : Number = 0;
+	private var _lastY : Number = 0;	
+	private var _disp : Point = new Point();
+	
 	public function init(type:String, args:Object):void
 	{
-		// TODO Auto Generated method stub
+		// TODO Auto Generated method stub	
 	}
 	
-	public function exec():void
+	public function exec(I:IWorldObjectBehaviorOwner):void
 	{
-		// TODO Auto Generated method stub		
+		_theta += Math.PI / 80;
+		var thisY : Number = 150 * Math.sin(_theta);
+		_disp.y = thisY - _lastY;
+		_lastY = thisY;
+		I.offset( _disp );
 	}
 }
 
@@ -376,36 +396,3 @@ class OnCollisionModifySize implements IHandler, IOnCollisionHandler {
 		p.scale( _scale, _duration_ms );
 	}
 }
-
-
-/*			
-
-
-if( behaviorSpec.update ) {
-var t : String = behaviorSpec.update.type;
-var args : Object = classSpec.args[t];
-var k : Class = _onUpdateHandlers[t];
-var u : IUpdateHandler = new k();
-u.init( args );
-}
-
-if( behaviorSpec.onCollision ) {
-t = behaviorSpec.onCollision.type;
-args = classSpec.args[t];
-k = _onCollisionHandlers[t];
-var on : ICollisionDetectionHandler = new k();
-on.init(args);
-}
-
-if( behaviorSpec.collisionDetection ) {
-t = behaviorSpec.collisionDetection.type;
-args = classSpec.args[t];
-k = _collisionDetectionHandlers[t];
-var cd : ICollisionDetectionHandler = new k();
-cd.init(args);
-}			
-*/			
-
-
-
-
