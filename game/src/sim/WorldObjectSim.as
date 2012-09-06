@@ -74,7 +74,7 @@ package sim {
 		
 		public function testCollision( iCol: ICollider ) : collision.CollisionResult {			
 			var msv : Vector2 =  _ICollisionDetection.exec( iCol, _bounds );
-			return msv ? new CollisionResult( 0, msv, this ) : null;
+			return msv ? new CollisionResult( msv, this ) : null;
 		}
 		
 		public function offset(p:Point):void
