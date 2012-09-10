@@ -1,13 +1,12 @@
 package sim {
+	import collision.CollisionResult;
+	
+	import events.WorldObjectEvent;
+	
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import collision.CollisionResult;
-	import events.WorldObjectEvent;
-	import sim.PlayerSim;
-	import sim.WorldObjectBehavior;
-	import util.Vector2;
-
+	
 	import interfaces.ICollider;
 	import interfaces.ICollisionDetectionHandler;
 	import interfaces.IOnCollisionHandler;
@@ -15,6 +14,11 @@ package sim {
 	import interfaces.IUpdateHandler;
 	import interfaces.IWorldObject;
 	import interfaces.IWorldObjectBehaviorOwner;
+	
+	import sim.PlayerSim;
+	import sim.WorldObjectBehavior;
+	
+	import util.Vector2;
 	
 	public class WorldObjectSim extends EventDispatcher implements IWorldObject, IWorldObjectBehaviorOwner {
 		
@@ -25,6 +29,9 @@ package sim {
 		private var _IOnCollision : IOnCollisionHandler;
 		private var _ICollisionDetection : ICollisionDetectionHandler;
 		private var _IQuerry : IQuerryHandler;
+
+		private var _center : Point;
+		private var _radius : Number;
 		
 		public function WorldObjectSim( id : String, bounds : Rectangle, behavior : WorldObjectBehavior ) {
 			super();
@@ -34,6 +41,22 @@ package sim {
 			_IOnCollision = behavior.IOnCollision;
 			_IUpdate = behavior.IUpdate;
 			_IQuerry = behavior.IQuerry;
+			
+			// collision, broad
+			var halfWidth : Number = bounds.width/2;
+			var halfHeight : Number = bounds.height /2 ;
+			_center = new Point( bounds.left + halfWidth, bounds.top + halfHeight );		
+			_radius = Math.sqrt( halfWidth*halfWidth + halfHeight*halfHeight );
+			
+		}
+		
+		
+		public function get center() : Point {
+			return _center;
+		}
+		
+		public function get radius() : Number {
+			return _radius;
 		}
 		
 		public function get id() : String {
@@ -57,12 +80,18 @@ package sim {
 		{
 			_bounds.x = p.x;
 			_bounds.y = p.y;
+
+			var halfWidth : Number = bounds.width/2;
+			var halfHeight : Number = bounds.height /2 ;
+			_center.setTo( bounds.left + halfWidth, bounds.top + halfHeight );		
+			
 			dispatchEvent( new WorldObjectEvent( WorldObjectEvent.WORLDOBJECT_MOVE ) );
 		}
 
 		public function offset(p:Point):void
 		{
 			_bounds.offsetPoint(p);
+			_center.offset(p.x,p.y);
 			dispatchEvent( new WorldObjectEvent( WorldObjectEvent.WORLDOBJECT_MOVE) );
 		}
 

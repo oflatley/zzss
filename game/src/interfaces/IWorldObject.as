@@ -1,9 +1,11 @@
 package interfaces {
+	import collision.CollisionResult;
+	
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
-	import flash.geom.Rectangle;	
-	import sim.PlayerSim;	
-	import collision.CollisionResult;
+	import flash.geom.Rectangle;
+	
+	import sim.PlayerSim;
 	
 	public interface IWorldObject {		
 		function get id() : String;		
@@ -12,6 +14,9 @@ package interfaces {
 		function set bounds( r:Rectangle ) : void ;
 		function get position() : Point;
 		function set position( p:Point ) : void ;
+		function get center() : Point;
+		function get radius() : Number;
+		
 		
 		function offset( p : Point ) : void ;		
 		function querry( s : String ) : Boolean;		

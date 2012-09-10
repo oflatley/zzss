@@ -1,5 +1,8 @@
 package sim
 {
+	import collision.CollisionManager;
+	import collision.CollisionResult;
+	
 	import events.CollisionEvent;
 	import events.ControllerEvent;
 	import events.PlayerEvent;
@@ -19,9 +22,6 @@ package sim
 	
 	import io.Controller;
 	
-	import collision.CollisionManager;
-	import collision.CollisionResult;
-	import io.Controller;
 	import util.Vector2;
 	
 	import views.PlayerView;
@@ -50,6 +50,8 @@ package sim
 		private var _collisionTestPointsJumping : Vector.<Point> = new Vector.<Point>(4);
 		private var _collisionTestPointsJumpingUp : Vector.<Point> = new Vector.<Point>(5);
 		private var _registrationPointOffset:Point;
+		public var _center: Point = new Point();
+		public var _radius : Number ;
 		
 		public function PlayerSim( controller:Controller, velX:Number, gravity:Number, bounds:Rectangle, _collisionMgr : CollisionManager )
 		{
@@ -65,11 +67,21 @@ package sim
 			_collisionMgr.addEventListener(CollisionEvent.PLAYERxWORLD, onCollision_playerVsWorld );		
 			_bounds = bounds; 
 			_originalSpan.offset( _bounds.width, _bounds.height );
-
+		
+			setCenterAndRadius();			
+			
 			initLocalCollisionTestPoints(1);	
 			initCollisionTestPoints( _collisionTestPointsWalking );
 			initCollisionTestPoints( _collisionTestPointsJumping );
 			initCollisionTestPoints( _collisionTestPointsJumpingUp );			
+		}
+		
+		private function setCenterAndRadius() : void {
+			// collision, broad
+			var halfWidth : Number = bounds.width/2;
+			var halfHeight : Number = bounds.height /2 ;
+			_center.setTo( bounds.left + halfWidth, bounds.top + halfHeight );	
+			_radius = Math.sqrt( halfWidth*halfWidth + halfHeight*halfHeight );			
 		}
 		
 		private function initLocalCollisionTestPoints( scale : Number ) : void {
@@ -114,6 +126,13 @@ package sim
 			dispatchEvent( e );			
 		}
 		
+		public function get center() : Point {
+			return _center;			
+		}
+		
+		public function get radius() : Number {
+			return _radius;
+		}
 		
 		public function scale( n : Number, duration : Number ) : void {
 		
@@ -122,6 +141,7 @@ package sim
 			_bounds.y = _bounds.bottom - h;			
  			_bounds.width = _originalSpan.x * n;
 			_bounds.height = h;
+			setCenterAndRadius();			
 			initLocalCollisionTestPoints(n);
 			dispatchMoveAndScale( n, _bounds.topLeft );			
 			setInterval( restoreNormalScale, duration );
@@ -131,7 +151,7 @@ package sim
 			_bounds.width = _originalSpan.x;
 			_bounds.height = _originalSpan.y;
 			_bounds.y -= _scaleOffsetY;
-		
+			setCenterAndRadius();			  		
 			initLocalCollisionTestPoints(1);
 			dispatchMoveAndScale( 1, _bounds.topLeft );
 		}
@@ -188,9 +208,12 @@ package sim
 			move_xy( v.x, v.y );
 		}
 		
-		private function move_xy( x : Number, y : Number ) : void {
+		private function move_xy( x : Number, y : Number ) : void {			
 			worldPosition = new Point( x + worldPosition.x, y + worldPosition.y);
-			buildCollisionTestPoints();			
+	//		worldPosition.offset(x,y);
+	//		worldPosition.setTo( x + worldPosition.x, y + worldPosition.y);
+			buildCollisionTestPoints();	
+			setCenterAndRadius();
 		}
 		
 		private function onJump( e:Event ) : void {
@@ -303,18 +326,16 @@ package sim
 		{
 			_bounds.x = value.x;
 			_bounds.y = value.y;
+			buildCollisionTestPoints();
+			setCenterAndRadius();
 			
 			var event : PlayerEvent = new PlayerEvent( PlayerEvent.PLAYER_MOVE );
 			event.newPostition = value;
 			dispatchEvent( event );
-			
-//			view.SetPosition( value );
-			buildCollisionTestPoints();
 		}
 		
 		public function SetPosition( value:Point) : void {
  			worldPosition = value;
-			buildCollisionTestPoints();
 		}
 		
 		public function get bounds():Rectangle
