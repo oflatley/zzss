@@ -1,0 +1,1 @@
+{"pool":[{"type":"StartSign","count":1},{"type":"PlatformLong_0","count":1}],"name":"Start","spans":{"y":390.35,"x":401},"version":0.1,"worldObjects":[{"y":364.35,"type":"PlatformLong_0","x":0},{"y":293.35,"type":"StartSign","x":304.25}]}

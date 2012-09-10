@@ -1,106 +1,174 @@
 package level {	
-	import events.LevelEvent;	
+	import events.LevelEvent;
+	
 	import flash.events.Event;
 	import flash.events.EventDispatcher;
 	import flash.net.URLLoader;
-	import flash.net.URLRequest;	
-	import interfaces.ILevelData;	
-	import level.LevelFactory;	
-	import level.Level;	
+	import flash.net.URLRequest;
+	
+	import interfaces.ILevelData;
+	
+	import level.Level;
+	import level.LevelFactory;
+	
 	import util.ObjectPool;
 	
 	public class LevelInstanceBase extends EventDispatcher {
 		
 		private var _sections : Array;
 		private static const urlBaseFolder : String = 'data/level/';
-		private var _loadedSectionsXml : Array = new Array();
+		private static const _startEndFilename : String = 'StartFinish';
+		private var _loadedSectionsJson : Array = new Array();
+		private var _sName : String;
+		private var _startEndLevelFile : LevelFile = null;
 		
-		public function LevelInstanceBase()  {}
+		public function LevelInstanceBase(sName:String)  {
+			_sName = sName;
+		}
 		
 		// TODO protected ??? wtf
 		public function set sections(value:Array) : void { 
-			_sections = value; 
+//			_sections = value; 
 //			_sections.push( "Start" );
 //			_sections.push( "Finish" );			
 		}  
 		
-		private function generateShuffledSections() : Array {
+		private function generateShuffledSections( sectionKeys : Array ) : Array {
 			
 			var order : Array = new Array();
-			var shuffledSections : Array = new Array();
-			for( var i : int = 0; i < _sections.length; ++i ) {
-				var s : String = _sections[i];
-				if( s != "Start" && s != "Finish" ) {			
+			for( var i : int = 0; i < sectionKeys.length; ++i ) {
 					order.push(i);		
-				}
 			}
 			
-//			shuffledSections.push( "Start" );
-			
+			var shuffledKeys : Array = new Array();
+
 			while( order.length ) {
 				var n : Number = Math.random();
 				var r : int = n * (order.length - 1) + .5;
 				var dx : int = order.splice( r, 1 )[0];
-				shuffledSections.push( _sections[dx] );
+				shuffledKeys.push( sectionKeys[dx] );				
 			}
 			
-//			shuffledSections.push( "Finish" );			
-			return shuffledSections;
+			return shuffledKeys;
 		}
 		
 		public function generate( ) : void { 			
-
-			for each( var s : String in _sections ) {
-				var urlLoader : URLLoader = new URLLoader() ;
-				urlLoader.addEventListener( Event.COMPLETE, onLoadComplete );		
-				var url : String = urlBaseFolder + s + '.xml';
-				var req : URLRequest = new URLRequest( url );
-				urlLoader.load( req );
-			}			
+			if( null == _startEndLevelFile ) {				
+				loadfile( _startEndFilename, onStartEndLoadComplete );
+			} else {	
+				loadfile( _sName, onLoadComplete );
+			}
 		} 
 		
-		private function getLevelJSON( s : String, aJson : Array ) : Object {
-			for( var i : int = 0; i < aJson.length; ++i ) {	
-				if( s == aJson[i].name ) {
-					return aJson[i];
-				}
-			}
-			return null;
+		private function loadfile( sFilename : String, cb : Function ) : void  {
+			var urlLoader : URLLoader = new URLLoader();
+			urlLoader.addEventListener( Event.COMPLETE, cb );
+			var url : String = urlBaseFolder + sFilename + '.js';
+			var req : URLRequest = new URLRequest(url);
+			urlLoader.load( req );			
 		}
 		
-		protected function onLoadComplete(event:Event):void
+		protected function onStartEndLoadComplete(event:Event):void
 		{
-			//event.target.removeEventListener( Event.COMPLETE, arguments.callee );
-			_loadedSectionsXml.push( event.target.data );
+			event.target.removeEventListener( Event.COMPLETE, arguments.callee );
+			_startEndLevelFile = new LevelFile( event.target.data );
+			generate();  // call generate again, but this time _startEndLevelFile will be non-null. thus, we only load startend data once 
+		}
+		
+		protected function onLoadComplete(event:Event) : void {
+			event.target.removeEventListener( Event.COMPLETE, arguments.callee );
+			var levelFile : LevelFile = new LevelFile(  event.target.data );
 			
-			if( _loadedSectionsXml.length == _sections.length ) {
+			var shuffledKeys : Array = generateShuffledSections(levelFile.sectionKeys);
+
+			var sections : Array = new Array();
+			
+			sections.push( _startEndLevelFile.getSection("Start" ) );
+			for( var i : int = 0; i < shuffledKeys.length; ++i ) {
+				sections.push( levelFile.getSection( shuffledKeys[i] ) );
+			}	
+			sections.push( _startEndLevelFile.getSection("Finish" ) );
+			
+			var aGenLevelData : Array =  generateWorldObjData( sections ) ;
+			
+			var ev : LevelEvent = new LevelEvent( LevelEvent.GENERATED, aGenLevelData );				
+			dispatchEvent( ev );		
+		}
+		
+		private function generateWorldObjData( levelSections : Array ) : Array {
+			
+			var a : Array = new Array();
+			var fixupX : Number = 0;
+			for each ( var ls : LevelSection in levelSections ) {
 				
-				var jsonSections : Array = new Array();
-				
-				for( var i : int = 0; i < _loadedSectionsXml.length; ++i ) {
-					jsonSections.push( JSON.parse( _loadedSectionsXml[i] ) );
-				}
-								
-				var shuffledSections : Array = generateShuffledSections();
-				var aGenLevelData : Array = new Array();		
-				var xFixup : Number = 0;
-				
-				for each( var s : String in shuffledSections ) {
-									
-					var js : Object = getLevelJSON(s,jsonSections);
-					var worldObjects : Array = js.worldObjects;
+				var aWO : Array = ls.worldObjects; 
+				for each ( var wo : Object in aWO ) {
 					
-					for each( var wo : Object in worldObjects ) {
-						wo.x += xFixup;
-						aGenLevelData.push( wo );
-					}					
-					xFixup += js.spans.x;
-				}		
-								
-				var ev : LevelEvent = new LevelEvent( LevelEvent.GENERATED, aGenLevelData );				
-				dispatchEvent( ev );
+					wo.x += fixupX;
+					a.push( wo ); 									
+				}				
+				fixupX += ls.range_x;
 			}
+			return a;
 		}
 	}
 }	
 
+
+class LevelFile {
+	
+	private var _version : String;
+	private var _fileName : String;
+	private var _sectionKeys : Array;
+	private var _sections : Array = new Array();
+	
+	public function LevelFile( json : String ) {
+
+		var data :Object = JSON.parse( json );
+		
+		_version = data.version;
+		_fileName = data.name;
+		_sectionKeys = data.sectionKeys;
+		
+		for each( var s : Object in data.sections ) {
+			_sections[s.name] = new LevelSection(s.content);						
+		}
+	}
+	
+	public function get sectionKeys() : Array { return _sectionKeys; }
+	
+	public function getSection( key : String ) : LevelSection {
+		return _sections[key];
+	}
+	
+}
+
+
+class LevelSection {
+	
+	private var _range : Object;
+	private var _pool : Array;
+	private var _aWO : Array;
+	
+	public function LevelSection( content : Object ) {
+		_range = content.range;
+		_pool = content.pool;
+		_aWO = content.worldObjects;
+		
+		for each ( var wo : Object in _aWO ) {
+			trace( wo.type + ' ' + wo.x + ' ' + wo.y );
+		}
+	}
+	
+	public function get range_x() : Number {
+		return _range.x;
+	}
+	public function get range_y() : Number {
+		return _range.y;
+	}
+	
+	public function get worldObjects() : Array {
+		return _aWO;
+	}
+	
+}

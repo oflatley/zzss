@@ -1,5 +1,7 @@
 package level
 {	
+	import collision.CollisionManager;
+	
 	import events.LevelEvent;
 	
 	import flash.events.EventDispatcher;
@@ -7,9 +9,8 @@ package level
 	import interfaces.ILevelData;
 	
 	import level.Level;
-	import sim.PlayerSim;
 	
-	import collision.CollisionManager;
+	import sim.PlayerSim;
 	
 	public class LevelFactory extends EventDispatcher
 	{
@@ -31,8 +32,8 @@ package level
 		}
 		
 		public function LevelFactory( se : SingletonEnforcer ) {
-			_levels['Level0'] = LevelInstance_0;
-			_levels['Level1'] = LevelInstance_1;			
+//			_levels['Level0'] = LevelInstance_0;
+//			_levels['Level1'] = LevelInstance_1;			
 		}
 			
 		public function registerLevel( tag : String, levelInstanceClass : Class ) : void {
@@ -40,7 +41,9 @@ package level
 		}
 				
 		public function generateLevel( s:String ) : void {
-			var li : LevelInstanceBase = new _levels[s]();
+			//var li : LevelInstanceBase = new _levels[s]();
+			var li : LevelInstanceBase = new LevelInstanceBase( s );
+			
 			li.addEventListener( LevelEvent.GENERATED, onGenerationComplete );
 			li.generate(); 
 		}
@@ -48,11 +51,6 @@ package level
 		private function onGenerationComplete( event : LevelEvent ):void
 		{			
 			var aGeneratedLevel : Array = event.payload;
-		
-			// hijack the event, just replacing the payload. We don't need a new LevelEvent, just reuse thisß
-//			event.payload = new Level( aGeneratedLevel, _cm, _ps );
-//			dispatchEvent( event );
-			
 			var le : LevelEvent = new LevelEvent( LevelEvent.GENERATED, new Level( aGeneratedLevel, _cm, _ps ) );
 			dispatchEvent( le );
 		}		
@@ -61,6 +59,7 @@ package level
 
 class SingletonEnforcer {}
 
+/*
 import level.LevelFactory;
 import level.LevelInstanceBase;
 
@@ -77,7 +76,7 @@ class LevelInstance_1 extends LevelInstanceBase {
 	}
 }	
 
-
+*/
 
 
 

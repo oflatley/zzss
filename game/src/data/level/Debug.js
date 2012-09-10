@@ -1,0 +1,1 @@
+{"name":"Debug","worldObjects":[{"y":424.5,"type":"Platform_Arc_0","x":0}],"version":0.1,"pool":[{"type":"Platform_Arc_0","count":1}],"spans":{"y":474.5,"x":271.85}}

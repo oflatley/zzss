@@ -1,0 +1,1 @@
+{"spans":{"y":395.7,"x":401},"name":"Finish","version":0.1,"pool":[{"count":1,"type":"PlatformLong_0"},{"count":1,"type":"FinishSign"}],"worldObjects":[{"y":369.7,"type":"PlatformLong_0","x":0},{"y":298.7,"type":"FinishSign","x":304.4}]}

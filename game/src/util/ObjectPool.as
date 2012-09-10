@@ -24,7 +24,7 @@ package util
 
 	public class ObjectPool extends EventDispatcher
 	{
-		private static var theObjectPool : ObjectPool = null;		
+		private static var theObjectPool : ObjectPool = null;	
 		private var poolMap : Array;
 		private var activeList : Array;
 		private var _mcMapping_swf : Array = new Array();			// for swf based assets
@@ -56,6 +56,7 @@ package util
 				var a : Array = new Array();
 				poolMap[elem.type] = a;
 				
+				
 				for( var i : int = 0; i < elem.count; ++i ) {
 					
 					var mc : MovieClip = createMC_swf( elem.type );
@@ -76,7 +77,7 @@ package util
 
 			var a : Array = poolMap[type];
 			
-			if( a.length ) {
+  			if( a.length ) {
 				var po : PoolObject = a.pop();
 				
 				activeList.push( po );

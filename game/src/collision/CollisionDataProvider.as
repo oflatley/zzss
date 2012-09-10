@@ -63,16 +63,17 @@ class DatFileParser extends EventDispatcher{
 		_map = map;
 		var urlLoader : URLLoader = new URLLoader() ;
 		var urlReq : URLRequest = new URLRequest( sURL );
+
 		urlLoader.load(urlReq);
 		urlLoader.addEventListener( Event.COMPLETE, onDataLoaded );		
 	}
 	
 	protected function onDataLoaded(event:Event):void
 	{	
-		var xml : String = event.target.data as String;
-		var json : Object = JSON.parse( xml );
+		var json : String = event.target.data as String;
+		var data : Object = JSON.parse( json );
 		
-		var aWO : Array = json.worldObjects;
+		var aWO : Array = data.worldObjects;
 		for each( var wo : * in aWO ) {
 			var w : int = wo.dims.w;
 			var h : int = wo.dims.h;

@@ -5,6 +5,7 @@ package
 	import collision.CollisionManager;
 	
 	import events.CollisionDataProviderEvent;
+	import events.CollisionEvent;
 	import events.ControllerEvent;
 	import events.LevelEvent;
 	import events.ObjectPoolEvent;
@@ -22,6 +23,7 @@ package
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.utils.flash_proxy;
+	import flash.utils.getTimer;
 	
 	import interfaces.ICollisionData;
 	
@@ -33,8 +35,10 @@ package
 	import sim.PlayerSim;
 	import sim.WorldObjectFactory;
 	
+	import util.Allocator;
 	import util.ObjectPool;
 	import util.ScreenContainer;
+	import util.Vector2;
 	
 	import views.PlayerView;
 
@@ -52,14 +56,19 @@ package
 		private var collisionDataProvider : CollisionDataProvider;		
 		private var _waitingToCompleteCount : int;
 
+		private static const allocationResouceSpec : Array = [
+			{k:Vector2,n:150},
+		//	{k:CollisionEvent,n:5},
+			{k:Rectangle,n:10},
+			{k:URLRequest,n:10},
+			
+		];
+
 		
 		private static const objPoolAllocs : Array = [
-			{type:"Platform_Arc_0" , 	count:1 },			
-
-/*			
 			{type:"StartSign",			count:1 },
 			{type:"FinishSign",			count:1 },
-			{type:"Platform_Arc_0" , 	count:5 },			
+			{type:"Platform_Arc_0" , 	count:15 },			
 			{type:"PlatformShort_0" , 	count:12 },			
 			{type:"PlatformMedium_0", 	count:10 },
 			{type:"PlatformMedium_15", 	count:10 },
@@ -75,8 +84,7 @@ package
 			{type:"Token_MakePlayerSmaller",count:3 },
 			{type:"Trampoline", count:3 },
 			{type:"Launcher",count:5 },
-			{type:"Catapult",count:3 },
-*/			
+			{type:"Catapult",count:3 },		
 			];
 
 		private static const  worldObjectSpec : Object = {
@@ -108,10 +116,46 @@ package
 		};		
 		
 		
+		private function getProp( n : int ) : Number {
+			if( n > 125 ) return .8;
+			if( n < 25 ) return .2;
+			return .5;
+		}
+		
 		public function SideScroller()
 		{
 			super();
 			
+			// this should be the first line of call after super();
+			Allocator.instance.initialize( allocationResouceSpec );
+			
+		
+		    var t0 : int = getTimer();	
+			var bag : Array = new Array();
+			for( var i : int = 0; i < 75; ++i ) {
+				bag.push( Allocator.instance.alloc(Vector2) );
+			}
+			
+			for( i = 0; i < 5000; ++i ) {
+				if( Math.random() > getProp(bag.length) ) {
+					//alloc
+					bag.push( Allocator.instance.alloc(Vector2) );
+					
+				} else {
+					//free
+					var r : Number = Math.random(); 
+					var dx : int = int( (bag.length-1) * r +0.5);
+					
+					var v : Vector2 = bag.splice( dx, 1)[0];
+					Allocator.instance.free(v);				
+				}
+			}	
+			
+			var t1: int = getTimer();
+			var elapsed : Number = (t1-t0)/1000;
+			
+			//44, 44.7  vs 61.9, 62.5
+			// 47.8
 			
 			WorldObjectFactory.instance.init( worldObjectSpec );		
 			
@@ -120,9 +164,9 @@ package
 
 			_waitingToCompleteCount = 3;
 			ObjectPool.instance.buildMovieClipClasses( 'data/assets/assets.swf'); 
-			ObjectPool.instance.loadObjectInfo( 'data/objectInfo.xml');
+			ObjectPool.instance.loadObjectInfo( 'data/objectInfo.js');
 			ObjectPool.instance.addEventListener( ObjectPoolEvent.INITIALIZED, onInitialized );
-			CollisionDataProvider.instance.buildCollisionData("data/collisionObj/collisionData.xml");
+			CollisionDataProvider.instance.buildCollisionData("data/collisionObj/collisionData.js");
 			CollisionDataProvider.instance.addEventListener( CollisionDataProviderEvent.INITIALIZED, onInitialized );			
 		}
 		
@@ -144,13 +188,13 @@ package
 			playerView.AddToScene( ScreenContainer.instance.container );
 			playerSim = new PlayerSim(new Controller(stage), velocityX, gravity, playerView.getBounds(), collisionManager );
 			playerView.initEventListeners( playerSim );
-  			playerSim.SetPosition( new Point( 0,375 ) );
+  			playerSim.SetPosition( new Point( 0,275 ) );
 	
 			ObjectPool.instance.initialize( objPoolAllocs, ScreenContainer.instance );
 			currentLevel = null;
 			LevelFactory.instance.initialize( collisionManager, playerSim );
 			LevelFactory.instance.addEventListener( LevelEvent.GENERATED, onLevelGenerated ); 
-			LevelFactory.instance.generateLevel( "Level0") ; 
+			LevelFactory.instance.generateLevel( "Level") ; 
 
 			onResize( null );
 		}
