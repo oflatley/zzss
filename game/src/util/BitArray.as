@@ -12,9 +12,9 @@ package util
 			if( data ) {
 				_data = data;
 				
-				for( var i : int = 0; i < data.length; ++i ) {
-					data[i] = ~0;
-				}
+			//	for( var i : int = 0; i < data.length; ++i ) {
+			//		data[i] = ~0;
+			//	}
 				
 				//data[0] &= 0x0FFFFFF0;
 			}
@@ -169,74 +169,72 @@ package util
 			if (v & 0x33333333) c -= 2;
 			if (v & 0x55555555) c -= 1;
 			
-			trace ( v.toString(16) + ' :: ' + c );
+		//	trace ( v.toString(16) + ' :: ' + c );
 			return c;
 		}
+
 		
 		private function _findLast_0( dx : uint, offset : uint ) : int {
 			
-			
-/*			
-			var db : uint = __findZerosOnRight_parallel(0);
-			db = __findZerosOnRight_parallel( ~0 );
-			
-			db = __findZerosOnRight_parallel( 15 );
-			db = __findZerosOnRight_parallel( 14 );
-			db = __findZerosOnRight_parallel( 8 );
-			db = __findZerosOnRight_parallel( 0 );
-			
-			for( var ss : int = 0 ; ss < 33; ++ss ) {
-				db = __findZerosOnRight_parallel( 1<<ss );				
+			var shf : uint = 31 - offset;		// shift down by the places we need to ignore (first time logic)
+			var bitsProcessed : uint = 0;
+		
+			for ( var i : int = dx ; i >= 0; --i ) {				
+				
+		//		var d : uint = _data[i];
+		//		var dprime : uint = d >> shf;		
+		//		var dd : uint = ~dprime;
+		
+				// using >> intentionally, not >>>,, this way we roll 1's into high bits, critical to this alg (coz we are looking for trailing 0's)
+				var flipped : uint = ~( _data[i] >> shf )	
+				
+				var consecRighthandZeros : uint = __findZerosOnRight_parallel( flipped );
+				if( consecRighthandZeros < 32 ) {
+					// there were trailing 0's
+					return consecRighthandZeros + bitsProcessed;
+				} 
+				// we found only 1's, keep going
+				bitsProcessed += (32-shf);
+				shf = 0;		// redundant, yes, but handles first case logic 
 			}
-*/			
-	//		var shf : uint  = offset;
-			var mask : uint = ~0 << (31-offset);
-			var foomask : uint = ~0 >>> (offset+1);//works
 			
-			foomask = 0xFFFFFFFF >>> (offset+1);
+			throw new Error( 'this can not be right, can it?' ); // todo
+			return -1;								
+		}
 
+		
+		
+		
+/*		
+		private function _findLast_0( dx : uint, offset : uint ) : int {
+			
+			var disp : uint = 0;
+			var bitsProcessed : uint  = offset+1;
+			
+			var foomask : uint = 0xFFFFFFFF >>> (offset+1);
+
+			// for whatever reason, i can't happily shift down 32 bits. I'd expect a 32 bit value >>> 32 to be 0. But not the case.
 			if( 32 == offset + 1 ) {
 				foomask  = 0;
 			}
-			
-			
 			
 			for ( var i : int = dx ; i >= 0; --i ) {				
 				
 				var d : uint = _data[i];
 				var dprime : uint = d | foomask;
-
 				var dd : uint = ~dprime;
 				
 				var foo : uint = __findZerosOnRight_parallel( dd );
-				//foo = 31 - foo;
 				if( 32 != foo ) {
-					return 31 - foo;
-				}
-				
-				
-				
-				var test : uint = ~_data[i];
-				var val : uint = test & mask; //(~_data[i]) & mask;
-				
-				if( val ) {				
-					var dx : uint = 31 - getOffsetTrailingOne( val );
-					
-					if( foo != dx ) {
-						
-						throw new Error('jack');
-					}
-					
-					dx += (i<<5);
-					return dx;
-				}
-				mask = ~0;
-	//			shf = 0;
+					return 31 - foo + disp;
+				} 
+				disp += bitsProcessed;
+				bitsProcessed = 32				
 				foomask = 0;
 			}
 			return -1;								
 		}
-											
+*/											
 
 		
 		private function getOffsetLeadingOne( v : uint, shf : uint = 16 ) : uint {

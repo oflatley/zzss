@@ -19,15 +19,18 @@ package collision {
 		}
 		public function testxy( _x : Number, _y:Number ) : Vector2  {
 
-			_x = offset;
-			_y = 1 ; //offset=++ ; //offsetx++;
-			offset++;
+	//		_x = offset;
+	//		_y = 1 ; //offset=++ ; //offsetx++;
+	//		offset++;
 			
 			
 			var x : int = Math.floor( _x + .5 );
 			var y : int = Math.floor( _y + .5 );
 			var vResult : Vector2 = null;
 
+			if( x == 33 && y == 22 ) {
+				trace('dsfsdf');
+			}
 			
 			if( x < _bits.width && x >= 0 && y < _bits.height && y >= 0 && _bits.testxy(x,y) ) {
 				
@@ -52,11 +55,18 @@ package collision {
 			if( !vResult && !_vResult )
 				return null;
 			
-  			if( _vResult.x != vResult.x || _vResult.y != vResult.y ) {
-				trace( 'pbbt: ');
+  			//if( _vResult.x != vResult.x || _vResult.y != vResult.y ) {
+			if( _vResult.y != vResult.y ) {
+				throw new Error( 'pbbbt yyyy' );
+				//trace( 'pbbt: ');
 			}
 			
-			return vResult;
+			if( _vResult.x != vResult.x ) {
+				throw new Error( 'pbbbt xxxxx' );
+				trace('pbbbbt x');
+			}
+			
+			return _vResult;
 		}
 
 		private function _testxy( _x : Number, _y:Number ) : Vector2 {

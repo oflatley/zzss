@@ -34,16 +34,13 @@ package util
 		}
 		
 		public function findLeft( _01 : int, x : uint, y : uint ) : int {
-			var dx0 : int = y * _width + x;
-			var dx1 : int = super.findLast( _01, dx0 ) ;
+			var dx : int = y * _width + x;
+			var disp : int = super.findLast( _01, dx ) ;
 			
-			// not found on the same row || not found at all
-			var y1 : int = dx1 / _width;
-			if( y1 != y ) 
-			{
-				return -(x+2); //y*_width - (x+2);	// offset to bounce you to the left of start of same row		
+			if( disp < x ) {
+				return -(disp+1)
 			}
-			return dx1 - dx0 - 1;						
+			return -(x+2);
 		}
 		
 		public function findAbove( _01 : int, x : uint, y : uint ) : int {
