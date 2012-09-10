@@ -105,7 +105,6 @@ package collision {
 		public function CollisionData( w : uint, h : uint, v :Array  ) {
 			_bits = new BitArray2D( w,h,v );
 		}
-				
 		protected var _bits : BitArray2D;
 	}
 }

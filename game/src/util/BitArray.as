@@ -4,6 +4,12 @@ package util
 	{
 		private var _data : Array; 
 		private var _nValid : uint;
+		
+		private static const MultiplyDeBruijnBitPosition : Array  = [
+			0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 
+			31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+		];
+		
 			
 		public function BitArray( elemCount : uint, data : Array = null ) {
 			
@@ -157,7 +163,7 @@ package util
 		// -- returns 0 if lsb set, in general
 		// returns 1 if 10b is the pattern of 2 lsb's, etc		
 		private function __findZerosOnRight_parallel( v : uint ) : uint {
-			
+//var dbug : uint = v;	
 			var c : uint = 32;
 			var iv : int = int(v);
 			iv = -iv;
@@ -169,12 +175,77 @@ package util
 			if (v & 0x33333333) c -= 2;
 			if (v & 0x55555555) c -= 1;
 			
-		//	trace ( v.toString(16) + ' :: ' + c );
+			
+//			trace( 'para :: ' + dbug.toString(16) + ' ' + c  );
 			return c;
 		}
 
 		
+		private function __findZerosOnRight_binary( v : uint ) : int {
+			var c : uint;     // c will be the number of zero bits on the right,
+//var dbug : uint = v;
+
+			if (v & 0x1) 
+			{
+				// special case for odd v (assumed to happen half of the time)
+				//return 0;
+				c = 0;
+			}			
+			else
+			{
+				if( v ) {
+					
+					c = 1;
+					if ((v & 0xffff) == 0) 
+					{  
+						v >>= 16;  
+						c += 16;
+					}
+					if ((v & 0xff) == 0) 
+					{  
+						v >>= 8;  
+						c += 8;
+					}
+					if ((v & 0xf) == 0) 
+					{  
+						v >>= 4;
+						c += 4;
+					}
+					if ((v & 0x3) == 0) 
+					{  
+						v >>= 2;
+						c += 2;
+					}
+					c -= v & 0x1;
+				}
+				else {
+					c = 32;
+				}
+			}	
+			
+//			trace( 'bin :: ' + dbug.toString(16) + ' ' + c  );
+			
+			return c;
+		}
+		
+		
 		private function _findLast_0( dx : uint, offset : uint ) : int {
+
+			__findZerosOnRight_parallel( ~0 );
+			__findZerosOnRight_binary( ~0 );							
+
+			
+			__findZerosOnRight_parallel( 0 );
+			__findZerosOnRight_binary( 0 );							
+			
+			
+			for( var k : uint = 0 ; k < 32; ++k ) {
+				var v : uint = 1 << k;
+				__findZerosOnRight_parallel( v );
+				__findZerosOnRight_binary( v );							
+			}
+			
+			
 			
 			var shf : uint = 31 - offset;		// shift down by the places we need to ignore (first time logic)
 			var bitsProcessed : uint = 0;
@@ -188,7 +259,7 @@ package util
 				// using >> intentionally, not >>>,, this way we roll 1's into high bits, critical to this alg (coz we are looking for trailing 0's)
 				var flipped : uint = ~( _data[i] >> shf )	
 				
-				var consecRighthandZeros : uint = __findZerosOnRight_parallel( flipped );
+				var consecRighthandZeros : uint = __findZerosOnRight_binary( flipped );
 				if( consecRighthandZeros < 32 ) {
 					// there were trailing 0's
 					return consecRighthandZeros + bitsProcessed;
