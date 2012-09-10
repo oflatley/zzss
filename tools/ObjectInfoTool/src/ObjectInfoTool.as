@@ -25,7 +25,7 @@ package
 			var objectsFile : File = new File();
 			var filter : FileFilter = new FileFilter("swf","*.swf");
 			
-			objectsFile.browseForOpen("Open the Level File" , [filter] );
+			objectsFile.browseForOpen("Open the Master Asset File" , [filter] );
 			objectsFile.addEventListener( Event.SELECT, onObjectsFileSelected );
 		}
 		
@@ -65,7 +65,7 @@ package
 				}
 			}
 			
-			var oFile : File = File.userDirectory.resolvePath( _sFileDir + '../data/objectInfo.xml' );
+			var oFile : File = File.userDirectory.resolvePath( _sFileDir + '../data/objectInfo.js' );
 			oFile.browseForSave("Save the Object Info ...");
 			oFile.addEventListener( Event.SELECT, onOutfileSelect );
 		}

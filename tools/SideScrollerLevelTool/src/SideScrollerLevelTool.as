@@ -6,6 +6,7 @@ package
 	import flash.display.BitmapData;
 	import flash.display.DisplayObject;
 	import flash.display.DisplayObjectContainer;
+	import flash.display.FrameLabel;
 	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
@@ -23,16 +24,10 @@ package
 	{
 		private var fileData:String;
 		private var _worldObjects : Array = new Array();
-
 		private var loader:Loader;
-		private var fileRootName:String;
-
-		private var sOutput:String;
+		private var _fileRootName:String;
 		private var sFileDir:String;
-		
-		private var _xml : String;
-		
-		private var sCollisionData : String = 'package CollisionData {';
+		private var _json : String;
 		
 		public function SideScrollerLevelTool() {
 			
@@ -40,19 +35,16 @@ package
 			var filter : FileFilter = new FileFilter("swf","*.swf");
 			
 			levelFile.browseForOpen("Open the Level File" , [filter] );
-			levelFile.addEventListener( Event.SELECT, onLevelFileSelected );
-		
+			levelFile.addEventListener( Event.SELECT, onLevelFileSelected );		
 		}
 		
 		protected function onLevelFileSelected(event:Event):void
 		{
 			var s : String = event.target.name as String;
-			fileRootName = s.split( /\./ )[0];
-			var firstChar : String = fileRootName.substr(0,1);
-			var restOfStr : String = fileRootName.substr(1,fileRootName.length);
-			fileRootName = firstChar.toUpperCase() + restOfStr;
-			
-			
+			_fileRootName = s.split( /\./ )[0];
+			var firstChar : String = _fileRootName.substr(0,1);
+			var restOfStr : String = _fileRootName.substr(1,_fileRootName.length);
+			_fileRootName = firstChar.toUpperCase() + restOfStr;
 			sFileDir = event.target.parent.nativePath;
 			
 			loader = new Loader();
@@ -62,64 +54,39 @@ package
 		}
 		
 		
-		protected function onCompleteHandler(event:Event):void
-		{
-			addChild( event.target.content as MovieClip );
-			var container:DisplayObjectContainer = event.target.content;
+		
+		private function generateThisSection( container:MovieClip ) : Object {
 			
-			for( var j : int = 0 ; j < container.numChildren; ++j ) {
-				var o : Object = container.getChildAt(j);
-				trace( o.name + ' ' + getQualifiedClassName(o) );
-			
-//				if( o as Bitmap ) { 
-//					buildCollisionData( o as Bitmap );
-					
-	//			}
-	//			else 
-				if ( o as MovieClip ) {
-					var parentMC : MovieClip = container.getChildAt(j) as MovieClip;
-				}
-			}
-//			writeCollisionData();
-			
-			
+			var worldObjects : Array  = new Array();
+
+			trace( '****: ' + container.currentFrameLabel );
 			var maxX : Number = -Infinity;
 			var maxY : Number = -Infinity; 
-			for( var i : int = 0 ; i < parentMC.numChildren; ++i ) {
-				var mc:DisplayObject = parentMC.getChildAt(i);
+			
+			var count : int = container.numChildren;
+			
+			for( var i : int = 0 ; i < count; ++i ) {
+				var mc:DisplayObject = container.getChildAt(i);
 				var name:String = getQualifiedClassName(mc);
 				
-				trace(name + ' ' + mc.x + ' ' + mc.y);
+				
+				var dx : int = name.indexOf("flash.display::" );
+				
+				if( mc.y <= 640 && -1 == dx ) {
 
-				if( mc.y <= 640 && name != "flash.display::Shape" ) {
-					_worldObjects.push( new WorldObject( name, mc.x, mc.y ) ); 
+					trace(name + ' ' + mc.x + ' ' + mc.y);
+					worldObjects.push( new WorldObject( name, mc.x, mc.y ) ); 
 					maxX = Math.max( maxX, mc.x + mc.width );
 					maxY = Math.max( maxY, mc.y + mc.height);
 				}
 			}
 			
-	
-			sOutput = new String();
-			sOutput = "package data.level {\n\timport interfaces.ILevelData;\n\tpublic class " + fileRootName + ' implements ILevelData {\n\t\tpublic function get data() : Array { return _data; }\n\t\tprivate static const _data : Array = [';
-			
-			
-			for each( var wo : WorldObject in _worldObjects ) {
-				trace( wo.name + ' ' + wo.x + ' ' + wo.y );
-				sOutput += '\n\t\t\t{ type: "' + wo.name + '",\t\t\t\t\tx: ' + Math.floor(wo.x) + ',\t\t\t\ty: ' + Math.floor(wo.y) + '},' 
-			}
-			sOutput += '\n\t\t];\n\t}\n}';
-		
-			var oFile : File = File.userDirectory.resolvePath( sFileDir + '../data/levels/' + fileRootName + '.as' );
-				
-			oFile.browseForSave("Save the level data");
-			oFile.addEventListener( Event.SELECT, onSaveSelected );
-			
 			
 			// sort by increasing x
-			_worldObjects.sort( orderWorldObjects );
+			worldObjects.sort( orderWorldObjects );
 			var poolMap : Array = new Array();
 			
-			for each( wo in _worldObjects ) {
+			for each( var wo : WorldObject in worldObjects ) {
 				if( poolMap[wo.name] ) {
 					poolMap[wo.name]++
 				} else {
@@ -127,32 +94,72 @@ package
 				}
 			}
 			
-			var json : Object = new Object();
-			json.version = 0.1;
-			json.name = fileRootName;
-			json.spans = new Object();
-			json.spans.x = maxX;
-			json.spans.y = maxY;
-			json.pool = new Array();
+			var data : Object = new Object();
+
+			data.range = new Object();
+			data.range.x = maxX;
+			data.range.y = maxY;
+			data.pool = new Array();
 			
 			for ( var s : String in  poolMap ) {
 				var poolElem : Object = new Object();
 				poolElem.type = s;
 				poolElem.count = poolMap[s];
-				json.pool.push( poolElem );
+				data.pool.push( poolElem );
 			}
 			
-			json.worldObjects = new Array();
+			data.worldObjects = new Array();
 			
-			for each ( wo in _worldObjects ) {
+			for each ( wo in worldObjects ) {
 				var woObj : Object = new Object();
 				woObj.type = wo.name;
 				woObj.x = wo.x;
 				woObj.y = wo.y;
-				json.worldObjects.push( woObj );
+				data.worldObjects.push( woObj );
 			}
+
+			return data;
+		}
+		
+		private function generateSections( container:MovieClip ) : Array  {
+
+			var map : Array = new Array();
+			var aLabels : Array = container.currentScene.labels;
+			var count : int = aLabels.length;
+			
+			for ( var i : int = 0; i < count; ++i ) {
+				var fl : FrameLabel = aLabels[i]	
 				
-			_xml = JSON.stringify( json );
+				if( 'Master' != fl.name ) {
+					container.gotoAndStop( fl.name );
+					var obj : Object = new Object();
+					obj.name = fl.name;
+					obj.content = generateThisSection( container ) ;
+					map.push( obj );
+				}				
+			}
+			return map;
+		}
+		
+		
+		protected function onCompleteHandler(event:Event):void
+		{
+			var data : Object = new Object();
+			data.version = '0.1';
+			data.name = _fileRootName;
+			data.sections = generateSections( event.target.content );
+			
+			var keys : Array = new Array();
+			for each( var s : Object in data.sections ) {
+				keys.push( s.name );
+			}
+			
+			data.sectionKeys = keys;
+			_json = JSON.stringify( data );
+
+			var oFile : File = File.userDirectory.resolvePath( sFileDir + '../data/levels/' + _fileRootName + '.js' );				
+			oFile.browseForSave("Save the level data");
+			oFile.addEventListener( Event.SELECT, onSaveSelected );
 		}
 		
 		private function orderWorldObjects( a : WorldObject, b : WorldObject) : int {
@@ -166,16 +173,15 @@ package
 			var f:File = event.currentTarget as File;
 			var fs : FileStream = new FileStream();
 			fs.open( f, FileMode.WRITE );
-		//	fs.writeUTFBytes( sOutput );
-			fs.writeUTFBytes( '\n\n\n' );
-			fs.writeUTFBytes( _xml );
-			
+			fs.writeUTFBytes( _json );
 			fs.close();
 		}
 	}
 }
-import flash.geom.Point;
 
+
+
+import flash.geom.Point;
 class WorldObject {
 
 	private var _name : String;
@@ -190,44 +196,3 @@ class WorldObject {
 	public function get y() : Number 			{ return _pos.y; }
 	public function get name() : String 		{ return _name; } 
 }
-
-/*
-private static const s0 : String = "\n\tpublic class ";
-private static const s1 : String = " implements ICollisionData {";
-private static const s2 : String = "\n\t\tprivate var _data:Vector.<uint> = new uint"; 		
-private static const s3 : String = "\n\t\tprivate var _width:int="
-private static const s4 : String = "\n\t\tprivate var _height:int="
-
-private function buildCollisionData( bm : Bitmap ) : void {
-
-var bmdata : BitmapData = bm.bitmapData;
-var w : Number = bmdata.width;
-var h : Number = bmdata.height;
-var name : String = getQualifiedClassName( bmdata );
-
-var sOut : String  = s0 + name + s1 + s3 + w + ';' + s4 + h + ';' + s2 + '[';
-
-for( var yy : int = 0 ; yy < h; ++yy ) {
-for( var xx : int = 0; xx < w; ++xx ) {
-
-var argb : uint = bmdata.getPixel32(xx,yy) >>> 24;
-sOut += argb + ',';					
-}
-}
-
-sOut += '];\n\t}';
-sCollisionData += sOut;
-
-}
-
-private function writeCollisionData() : void {
-sCollisionData += '\n}';
-
-var f:File = File.documentsDirectory.resolvePath("collisionData.as");
-var fs : FileStream = new FileStream();
-fs.open( f, FileMode.WRITE );
-fs.writeUTFBytes( sCollisionData );
-fs.close();
-
-}
-*/

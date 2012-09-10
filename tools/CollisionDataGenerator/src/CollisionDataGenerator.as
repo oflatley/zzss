@@ -37,7 +37,7 @@ package
 			var levelFile : File = new File();
 			var filter : FileFilter = new FileFilter("swf","*.swf");
 			
-			levelFile.browseForOpen("Open the Level File" , [filter] );
+			levelFile.browseForOpen("Open the File of Collision Objects" , [filter] );
 			levelFile.addEventListener( Event.SELECT, onLevelFileSelected );
 			
 		}
@@ -226,7 +226,7 @@ package
 				}
 			}
 			
-			var oFile : File = File.userDirectory.resolvePath( sFileDir + '../data/collisionObj/collisionData.xml' );
+			var oFile : File = File.userDirectory.resolvePath( sFileDir + '../data/collisionObj/collisionData.js' );
 			oFile.browseForSave("Save the Collision Data");
 			oFile.addEventListener( Event.SELECT, onSaveCollisionData );
 			
