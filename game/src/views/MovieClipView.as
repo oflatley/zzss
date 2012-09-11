@@ -48,7 +48,7 @@ package views
 //*/			
 		}
 
-		public function set active( b : Boolean ) : void {
+		public function set visible( b : Boolean ) : void {
 			_mc.visible = b;
 		}
 		

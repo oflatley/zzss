@@ -17,13 +17,12 @@ package collision {
 		private var _accumA : int = 0;
 		private var _accumB : int = 0;
 		
-		private var _$ : int = 500;
-		
 
 		public function testPoint( p : Point ) : Vector2 {
-			
+
+// DEBUG DEBUG			
 			return testxy( p.x, p.y );
-	
+// DEBUG DEBUG	
 			
 			var x : int = Math.floor( p.x + .5 );
 			var y : int = Math.floor( p.y + .5 );
@@ -75,10 +74,6 @@ package collision {
 			_accumA += (ta1-ta0);
 			_accumB += (tb1-tb0);
 			
-			if( !_$-- ) {
-				trace('asdfasdfggg');
-			}
-			
 			
 			if( !vResult && !_vResult )
 				return null;
@@ -88,7 +83,8 @@ package collision {
 			}
 			
 			if( _vResult.x != vResult.x ) {
-				throw new Error( 'pbbbt xxxxx' );
+				trace ('pbbbbt xxxxx ' + _vResult.x + ' ' + vResult.x );
+			//	throw new Error( 'pbbbt xxxxx' );
 			}
 			
 			return _vResult;

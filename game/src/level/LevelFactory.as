@@ -12,6 +12,8 @@ package level
 	
 	import sim.PlayerSim;
 	
+	import util.ObjectPool;
+	
 	public class LevelFactory extends EventDispatcher
 	{
 		private static var _theThe : LevelFactory = null;
@@ -28,12 +30,10 @@ package level
 		
 		public function initialize( cm : CollisionManager, ps : PlayerSim ) : void {
 			_cm = cm;
-			_ps = ps;			
+			_ps = ps;		
 		}
 		
 		public function LevelFactory( se : SingletonEnforcer ) {
-//			_levels['Level0'] = LevelInstance_0;
-//			_levels['Level1'] = LevelInstance_1;			
 		}
 			
 		public function registerLevel( tag : String, levelInstanceClass : Class ) : void {

@@ -1,7 +1,6 @@
 package collision
 {
-	import events.CollisionEvent;
-	
+	import events.CollisionEvent;	
 	import flash.events.EventDispatcher;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
@@ -54,11 +53,11 @@ package collision
 			
 			for each( var wo : IWorldObject in activeWorldObjects ) {
 				
+				// broad phase: radius check. 
 				var pwoD : Number = dist( player.center, wo.center ) ;
 				var thresh : Number = wo.radius + player.radius;
 				
-				if( pwoD < thresh ) {
-					
+				if( pwoD < thresh ) {					
 					var cr : CollisionResult = wo.testCollision( player ); 
 					if( cr ) {
 						results.push(cr);

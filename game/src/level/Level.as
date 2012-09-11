@@ -4,6 +4,7 @@ package level
 	import collision.CollisionResult;
 	
 	import events.CollisionEvent;
+	import events.LevelEvent;
 	import events.RemoveFromWorldEvent;
 	import events.ScreenContainerEvent;
 	
@@ -14,6 +15,7 @@ package level
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	
+	import interfaces.IOnCollisionHandler;
 	import interfaces.IWorldObject;
 	
 	import level.LevelFactory;
@@ -41,6 +43,7 @@ package level
 		public function Level( data : Array, _collisionMgr : CollisionManager, playerSim : PlayerSim )	
 		{			
 			_scrollSignaled = false;
+			
 			
 			_collisionMgr.addEventListener( CollisionEvent.PLAYERxWORLD, onPlayerxWorldCollision );
 			ScreenContainer.instance.addEventListener( ScreenContainerEvent.SLICE_SCROLL, onSliceScroll );
@@ -98,12 +101,28 @@ package level
 			for( var n1 : int = 0; n1 < bucketSlices + nBucketsOffscreenOnRight; ++n1  ) {
 				addToActiveObjects( buckets_startX[n1] ) ;
 			}
+			
+			ObjectPool.instance.registerEventHandler( LevelEvent, LevelEvent.START,  onLevelStart );
+			ObjectPool.instance.registerEventHandler( LevelEvent, LevelEvent.FINISH, onLevelFinish );
+
+			
 		}
 		
 		protected function onRemoveFromWorld(event:RemoveFromWorldEvent):void
 		{
 			_objectsToRemove.push( event.objToRemove );
 		}
+		
+		protected function onLevelStart( event:LevelEvent ) : void {
+			event.target.removeEventListener( LevelEvent.START, arguments.callee );
+			trace('LEVEL STARTING');
+		}
+
+		protected function onLevelFinish( event:LevelEvent ) : void {
+			event.target.removeEventListener( LevelEvent.FINISH, arguments.callee );
+			trace('LEVEL FINISHED!!');
+		}
+		
 		
 		private function onSliceScroll( event : ScreenContainerEvent ) : void {
 

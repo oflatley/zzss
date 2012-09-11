@@ -15,6 +15,7 @@ package util
 	import flash.system.ApplicationDomain;
 	import flash.utils.getDefinitionByName;
 	
+	import interfaces.IOnCollisionHandler;
 	import interfaces.IWorldObject;
 	
 	import sim.PlayerSim;
@@ -44,7 +45,7 @@ package util
 			poolMap = new Array();
 			activeList = new Array();
 		}
-					
+		
 		public function get playerMC() : MovieClip {
 			return _playerMC_hackForSwf;
 		}
@@ -62,11 +63,23 @@ package util
 					var mc : MovieClip = createMC_swf( elem.type );
 					var iWO : IWorldObject = WorldObjectFactory.instance.createWorldObject( elem.type, new Rectangle( 0,0,mc.width, mc.height ) );
 					var mcv : MovieClipView = new MovieClipView( screenContainer, iWO, mc );
-					mcv.active = false;
+					mcv.visible = false;
 					a.push( new PoolObject(iWO, mcv ) );
+				}
+			}			
+		}
+		
+		public function registerEventHandler( klassFilter : Class, type : String, listener : Function ) : void  {
+			for each( var a : Array in poolMap ) {
+				for each( var po : PoolObject in a ) {
+					po.iWorldObj.behavior.registerEvent( klassFilter, type, listener );
 				}
 			}
 			
+			for each( po in activeList ) {
+				po.iWorldObj.behavior.registerEvent( klassFilter, type, listener );				
+			}
+				
 		}
 		
 		public function Clean() : void {
@@ -81,7 +94,8 @@ package util
 				var po : PoolObject = a.pop();
 				
 				activeList.push( po );
-				po.movieClipView.active = true;
+				var bVis : Boolean = ! po.iWorldObj.querry( WorldObjectFactory.Q_INVISIBLE ) ;
+				po.movieClipView.visible = bVis;
 				return po.iWorldObj; 
 			}
 
@@ -99,7 +113,7 @@ package util
 			
 			if( i < activeList.length ) {
 				var po : PoolObject = activeList.splice( i, 1 )[0] as PoolObject;
-				po.movieClipView.active = false;
+				po.movieClipView.visible = false;
 				poolMap[wo.id].push( po );
 			} else {
 				trace('ERROR -- could not recycleObj in ObjectPool ');
@@ -133,7 +147,7 @@ package util
 		//swf loading support
 		private function onSwfLoadComplete(event:Event):void
 		{
-			var aNames : Array = ["Player","Platform_Arc_0","Catapult","Trampoline","Launcher","Token_MakePlayerBigger","Token_MakePlayerSmaller", "SpringBoard","Brain","SpeedBoostCoin","Enemy_0","Column","PlatformShort_0","PlatformMedium_0","PlatformLong_0","StartSign","FinishSign","PlatformMedium_15","PlatformMedium_345"];
+			var aNames : Array = ["Player","PlatformShort_elev","Platform_Arc_0","Catapult","Trampoline","Launcher","Token_MakePlayerBigger","Token_MakePlayerSmaller", "SpringBoard","Brain","SpeedBoostCoin","Enemy_0","Column","PlatformShort_0","PlatformMedium_0","PlatformLong_0","StartSign","FinishSign","PlatformMedium_15","PlatformMedium_345"];
 					
 			event.target.removeEventListener( Event.COMPLETE, arguments.callee );
 			var ad:ApplicationDomain = event.target.applicationDomain;
@@ -142,10 +156,11 @@ package util
 				var Klass : Object = ad.getDefinition( s );
 				_mcMapping_swf[s] = Klass;			
 			}
-			_mcMapping_swf["PlatformShort_elev"] = _mcMapping_swf['PlatformShort_0'];
-			_playerMC_hackForSwf = createMC_swf("Player");
 			
+			// special case stuff
+			_playerMC_hackForSwf = createMC_swf("Player");			
 			_boundBoxKlass = ad.getDefinition( "BoundingBox" ) as Class;
+			
 			dispatchEvent( new ObjectPoolEvent( ObjectPoolEvent.INITIALIZED ) );				
 		}
 
@@ -187,10 +202,8 @@ package util
 	}
 }
 import flash.display.MovieClip;
-
 import interfaces.IWorldObject;
-
-import views.*;
+import views.MovieClipView;
 
 class SingletonEnforcer {}
 

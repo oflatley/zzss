@@ -34,7 +34,7 @@ package util
 		}
 		
 		public function findLeft( _01 : int, x : uint, y : uint ) : int {
-			var dx : int = y * _width + x;
+			var dx : int = y * _width + x;  
 			var disp : int = super.findLast( _01, dx ) ;
 			
 			if( disp < x ) {

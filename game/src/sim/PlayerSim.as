@@ -261,6 +261,8 @@ package sim
 				
 				if( bCollisionFromBelow && !wo.querry( WorldObjectFactory.Q_COLLIDEABLE_FROM_BELOW )){
 					v.setxy(0,0)
+				} else if ( wo.querry( WorldObjectFactory.Q_NO_COLLISION_REACTION ) ) {
+					v.setxy(0,0);
 				}
 				else { 					
 					if( _objectUnderfootThisFrame ) {
@@ -287,10 +289,10 @@ package sim
 		}
 		
 		private function applyPendingCollisions() : void {
-			
 			var len : int = _collisionList.length;
 			
 			if( len ) {
+throw new Error('dead?');			
 				var minX : Number = Infinity;
 				var minY : Number = Infinity;
 				

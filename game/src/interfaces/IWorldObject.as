@@ -6,6 +6,7 @@ package interfaces {
 	import flash.geom.Rectangle;
 	
 	import sim.PlayerSim;
+	import sim.WorldObjectBehavior;
 	
 	public interface IWorldObject {		
 		function get id() : String;		
@@ -16,7 +17,8 @@ package interfaces {
 		function set position( p:Point ) : void ;
 		function get center() : Point;
 		function get radius() : Number;
-		
+		function get behavior() : WorldObjectBehavior;
+		function get eventRegistrationAgent() : Function;
 		
 		function offset( p : Point ) : void ;		
 		function querry( s : String ) : Boolean;		

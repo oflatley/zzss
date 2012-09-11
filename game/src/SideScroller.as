@@ -97,6 +97,7 @@ package
 				{name:"AnimatedPlatform",				update:{type:"animPlat"} },
 				{name:"Enemy", 							update:{type:"ai"}, properties:['Monster'] },
 				{name:"Scenary",						collisionDetection:{type:"never"} },
+				{name:"ED",								onCollision:{ type:"eventDispatcher"}, properties:['NoCollisionReaction']  }, //'Invisible',
 			],
 			
 			classes: [
@@ -110,13 +111,13 @@ package
 				{name:"Brain",						behavior:"Treasure", args:{ tc:{value:1} } },	
 				{name:"PlatformShort_elev", 		behavior:"AnimatedPlatform", args:{ animPlat:{pattern:"cycle", transition:"sin",speed:150} } },
 				{name:"Enemy_0",					behavior:"Enemy", args:{ ai:{pattern:"left", speed:1} } },
-				{name:"StartSign",					behavior:"Scenary" },
-				{name:"FinishSign",					behavior:"Scenary" },				
+				{name:"StartSign",					behavior:"ED", args:{ eventDispatcher:{klass:"LevelEvent", subType:'lvlStart' } } },
+				{name:"FinishSign",					behavior:"ED", args:{ eventDispatcher:{klass:"LevelEvent", subType:'lvlFinish' } } },				
 			]
 		};		
 		
 		
-		private function getProp( n : int ) : Number {
+		private function getProb( n : int ) : Number {
 			if( n > 125 ) return .8;
 			if( n < 25 ) return .2;
 			return .5;
@@ -125,7 +126,7 @@ package
 		public function SideScroller()
 		{
 			super();
-			
+/*			
 			// this should be the first line of call after super();
 			Allocator.instance.initialize( allocationResouceSpec );
 			
@@ -137,7 +138,7 @@ package
 			}
 			
 			for( i = 0; i < 5000; ++i ) {
-				if( Math.random() > getProp(bag.length) ) {
+				if( Math.random() > getProb(bag.length) ) {
 					//alloc
 					bag.push( Allocator.instance.alloc(Vector2) );
 					
@@ -156,7 +157,7 @@ package
 			
 			//44, 44.7  vs 61.9, 62.5
 			// 47.8
-			
+*/			
 			WorldObjectFactory.instance.init( worldObjectSpec );		
 			
 			collisionManager = new CollisionManager();

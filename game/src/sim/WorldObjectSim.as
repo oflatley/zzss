@@ -29,9 +29,11 @@ package sim {
 		private var _IOnCollision : IOnCollisionHandler;
 		private var _ICollisionDetection : ICollisionDetectionHandler;
 		private var _IQuerry : IQuerryHandler;
-
+		private var _behavior : WorldObjectBehavior;
+		
 		private var _center : Point;
 		private var _radius : Number;
+//		private var _dispatchesEvent : Boolean;
 		
 		public function WorldObjectSim( id : String, bounds : Rectangle, behavior : WorldObjectBehavior ) {
 			super();
@@ -41,6 +43,8 @@ package sim {
 			_IOnCollision = behavior.IOnCollision;
 			_IUpdate = behavior.IUpdate;
 			_IQuerry = behavior.IQuerry;
+			_behavior = behavior;
+//			_dispatchesEvent = behavior.isEventDispatcher;
 			
 			// collision, broad
 			var halfWidth : Number = bounds.width/2;
@@ -50,6 +54,19 @@ package sim {
 			
 		}
 		
+		public function get behavior () : WorldObjectBehavior {
+			return _behavior;
+		}
+		
+		private function registerEvent( classFilter : Class, type: String, listener : Function ) : void {
+			behavior.registerEvent( classFilter, type, listener );
+		//	if( _ICollisionDetection is classFilter ) 
+		//		_ICollisionDetection.eventDispatcher.addEventListener( type, listener ); 
+		}
+		
+		public function get eventRegistrationAgent() : Function {
+			return registerEvent;
+		}
 		
 		public function get center() : Point {
 			return _center;
