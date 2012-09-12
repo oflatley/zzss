@@ -1,34 +1,20 @@
-package
+package states
 {
-	
-	
 	import collision.CollisionDataProvider;
 	import collision.CollisionManager;
 	
 	import events.CollisionDataProviderEvent;
-	import events.CollisionEvent;
-	import events.ControllerEvent;
 	import events.LevelEvent;
 	import events.ObjectPoolEvent;
 	
-	import flash.display.Loader;
 	import flash.display.MovieClip;
 	import flash.display.Sprite;
+	import flash.display.Stage;
 	import flash.events.Event;
-	import flash.events.IOErrorEvent;
 	import flash.geom.Point;
 	import flash.geom.Rectangle;
-	import flash.geom.Vector3D;
-	import flash.net.FileReference;
-	import flash.net.URLLoader;
-	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
-	import flash.utils.flash_proxy;
-	import flash.utils.getTimer;
 	
-	import fsm.FiniteStateMachine;
-	
-	import interfaces.ICollisionData;
+	import interfaces.IFiniteState;
 	
 	import io.Controller;
 	
@@ -38,46 +24,14 @@ package
 	import sim.PlayerSim;
 	import sim.WorldObjectFactory;
 	
-	import states.FS_initGame;
-	import states.FS_initLevel;
-	import states.FS_playGame;
-	import states.Glob;
-	
-	import util.Allocator;
 	import util.ObjectPool;
 	import util.ScreenContainer;
-	import util.UnitTester;
-	import util.Vector2;
 	
 	import views.PlayerView;
-
-	[SWF(width='960', height='640')]
-	public class SideScroller extends Sprite
+	
+	public class FS_initGame implements IFiniteState
 	{
-		private static const DESIGN_SIZE:Rectangle = new Rectangle(0,0,960,640);
-		
-		
-/*
-		private var collisionManager : CollisionManager;
-		private var playerMC : MovieClip;
-		private static const velocityX:Number = 2.5;
-		private static const gravity :Number = 1.75;	
-		private static const DESIGN_SIZE:Rectangle = new Rectangle(0,0,960,640);
-		private var playerSim:PlayerSim;
-		private var currentLevel:Level;
-		private var collisionDataProvider : CollisionDataProvider;		
-		private var _waitingToCompleteCount : int;
 
-		
-		private static const allocationResouceSpec : Array = [
-			{k:Vector2,n:150},
-		//	{k:CollisionEvent,n:5},
-			{k:Rectangle,n:10},
-			{k:URLRequest,n:10},
-			
-		];
-
-		
 		private static const objPoolAllocs : Array = [
 			{type:"StartSign",			count:1 },
 			{type:"FinishSign",			count:1 },
@@ -98,8 +52,8 @@ package
 			{type:"Trampoline", count:3 },
 			{type:"Launcher",count:5 },
 			{type:"Catapult",count:3 },		
-			];
-
+		];
+		
 		private static const  worldObjectSpec : Object = {
 			
 			behaviors:[
@@ -128,64 +82,46 @@ package
 				{name:"FinishSign",					behavior:"ED", args:{ eventDispatcher:{klass:"LevelEvent", subType:'lvlFinish' } } },				
 			]
 		};		
-*/		
-		private var _fsm : FiniteStateMachine = new FiniteStateMachine();
-		private var _glob : Glob = new Glob();
-		private var _lastTimeStamp : int  = 0;
-			
-		public function SideScroller()
+		
+		
+		private static const velocityX:Number = 2.5;
+		private static const gravity :Number = 1.75;	
+		private static const DESIGN_SIZE:Rectangle = new Rectangle(0,0,960,640);
+		private var _waitingToCompleteCount : int;
+		private var _blInitComplete : Boolean;
+		
+		
+		private var _g : Glob;
+		
+		public function FS_initGame( glob : Glob )
 		{
-			super();	
-			
-			_glob.applicationContainer = this;
-			_glob.stage = stage;
-			
-			_fsm.addState( 'initGame', new FS_initGame( _glob ) );
-			_fsm.addState( 'initLevel', new FS_initLevel( _glob) );
-			_fsm.addState( 'play', new FS_playGame(_glob) );
-			_fsm.initialState = 'initGame';
-			
-this.addEventListener(Event.RESIZE, onResize );
-			addEventListener(Event.ENTER_FRAME, onEnterFrame );
+			_g = glob;
 		}
 		
-		protected function onEnterFrame(event:Event):void
+		public function enter():void
 		{
-			var now : int = getTimer();
-			var delta_ms : int = now - _lastTimeStamp;			
-			_fsm.update( delta_ms );
-			_lastTimeStamp = now;									
+			_blInitComplete = false;
+			init();
+			
 		}
 		
-		private function onResize( e:Event ) : void {
-			
-			var c : Sprite = this;
-			
-			trace( stage.stageWidth );
-			trace( stage.stageHeight );
-			var scale:Number = Math.min( stage.stageWidth/DESIGN_SIZE.width, stage.stageHeight/DESIGN_SIZE.height );
-			c.scaleX = c.scaleY = scale;
-			c.x = (stage.stageWidth - scale*DESIGN_SIZE.width)/2;
-			c.y = (stage.stageHeight - scale*DESIGN_SIZE.height)/2;			
-		}
-	}
-	
-		
-}
-		
-/*			
-			
-		public function SideScroller()
+		public function update(delta_ms:Number):String
 		{
-			super();
-			
-			
-//			new UnitTester();
+			return _blInitComplete ? 'initLevel' : null;
+		}
+		
+		public function exit():void
+		{
+		}
+		
+		// ----------------------------------
+		
+		private function init() : void {
 			WorldObjectFactory.instance.init( worldObjectSpec );		
 			
-			collisionManager = new CollisionManager();
-			addChild( ScreenContainer.instance.container );						
-
+			_g.collisionManager = new CollisionManager();
+			_g.applicationContainer.addChild( ScreenContainer.instance.container );						
+			
 			_waitingToCompleteCount = 3;
 			ObjectPool.instance.buildMovieClipClasses( 'data/assets/assets.swf'); 
 			ObjectPool.instance.loadObjectInfo( 'data/objectInfo.js');
@@ -195,50 +131,59 @@ this.addEventListener(Event.RESIZE, onResize );
 		}
 		
 		private function onInitialized(e:Event): void {
-		
+			
 			_waitingToCompleteCount--;
-		
+			
 			if( 0 == _waitingToCompleteCount ) {
 				startGame();				
 			}
 		}
 		
 		private function startGame():void{
-
-			stage.color = 0x444444;
-			stage.frameRate = 60;
+			
+			_g.stage.color = 0x444444;
+			_g.stage.frameRate = 60;
+			onResize(null);
+			_g.applicationContainer.addEventListener(Event.RESIZE, onResize );
+			
 			
 			var playerView : PlayerView = new PlayerView(  );
 			playerView.AddToScene( ScreenContainer.instance.container );
-			playerSim = new PlayerSim(new Controller(stage), velocityX, gravity, playerView.getBounds(), collisionManager );
-			playerView.initEventListeners( playerSim );
-  			playerSim.SetPosition( new Point( 0,275 ) );
-	
+			_g.playerSim = new PlayerSim(new Controller(_g.stage), velocityX, gravity, playerView.getBounds(), _g.collisionManager );
+			playerView.initEventListeners( _g.playerSim );
+			_g.playerSim.SetPosition( new Point( 0,275 ) );
+			
 			ObjectPool.instance.initialize( objPoolAllocs, ScreenContainer.instance );
-			currentLevel = null;
-			LevelFactory.instance.initialize( collisionManager, playerSim );
+			_g.currentLevel = null;
+			LevelFactory.instance.initialize( _g.collisionManager, _g.playerSim );
 			LevelFactory.instance.addEventListener( LevelEvent.GENERATED, onLevelGenerated ); 
 			LevelFactory.instance.generateLevel( "Level") ; 
-
-			onResize( null );
+			
 		}
 		
 		protected function onLevelGenerated(event:LevelEvent):void
 		{
 			LevelFactory.instance.removeEventListener( LevelEvent.GENERATED, onLevelGenerated );
-			currentLevel = event.payload;
-			addEventListener(Event.RESIZE, onResize );
- 			addEventListener(Event.ENTER_FRAME, onEnterFrame );
+			_g.currentLevel = event.payload;
+			_blInitComplete = true;
 		}
 		
-		private function onEnterFrame( e:Event ) : void {
-	 		playerSim.Update();
-			currentLevel.update(playerSim.worldPosition);
-			collisionManager.update(playerSim,currentLevel.activeObjects);		// dispatches CollisionEvents
-			ScreenContainer.instance.update( playerSim.worldPosition );		
+		private function onResize( e:Event ) : void {
+			
+			var stage : Stage = _g.stage;
+			var c : Sprite = _g.applicationContainer;
+			
+			trace( stage.stageWidth );
+			trace( stage.stageHeight );
+			var scale:Number = Math.min( stage.stageWidth/DESIGN_SIZE.width, stage.stageHeight/DESIGN_SIZE.height );
+			c.scaleX = c.scaleY = scale;
+			c.x = (stage.stageWidth - scale*DESIGN_SIZE.width)/2;
+			c.y = (stage.stageHeight - scale*DESIGN_SIZE.height)/2;			
 		}
-		
 	}
 }
 
-*/
+
+
+
+

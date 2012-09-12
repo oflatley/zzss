@@ -183,7 +183,12 @@ class UT_allocator implements IUnitTest {
 		
 	}
 	
-	
+	private function getProb( n : int ) : Number {
+		if( n > 125 ) return .8;
+		if( n < 25 ) return .2;
+		return .5;
+	}
+
 	public function test() : Boolean {
 		return true;
 	}
